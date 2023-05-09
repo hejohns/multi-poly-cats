@@ -33,7 +33,7 @@ module _ (G : Graph ℓ̬ ℓₑ) where
         [_,_] : {A B D : Objects} → Morphisms D A → Morphisms D B → Morphisms D (A , B)
         β₁ : {A B D : Objects}{f : Morphisms D A}{g : Morphisms D B} → ([ f , g ]) ⋆ₑ π₁ ≡ f
         β₂ : {A B D : Objects}{f : Morphisms D A}{g : Morphisms D B} → ([ f , g ]) ⋆ₑ π₂ ≡ g
-        η : {A B D : Objects}{f : Morphisms D (A , B)} → [ (f ⋆ₑ π₁) , (f ⋆ₑ π₂) ] ≡ f
+        ηₑ : {A B D : Objects}{f : Morphisms D (A , B)} → [ (f ⋆ₑ π₁) , (f ⋆ₑ π₂) ] ≡ f
 
     FreeCartesianCat : Category ℓ̬ (ℓ-max ℓ̬ ℓₑ)
     FreeCartesianCat = record
@@ -46,3 +46,8 @@ module _ (G : Graph ℓ̬ ℓₑ) where
                         ; ⋆Assoc = ⋆ₑAssoc
                         ; isSetHom = isSetMorphisms
                         }
+
+    open import Cubical.Categories.Constructions.Free.UnderlyingGraph
+
+    η : Interp G FreeCartesianCat
+    η = record { _$g_ = λ x → ↑ x ; _<$g>_ = ↑_ }
