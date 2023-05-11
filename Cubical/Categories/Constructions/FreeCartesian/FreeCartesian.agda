@@ -7,15 +7,29 @@ open import Cubical.Categories.Category.Base
 open import Cubical.Data.Graph.Base
 
 private variable ℓ̬ ℓₑ : Level
+private variable ℓₒ ℓₕ : Level
 
+open Cubical.Categories.Category.Base.Category
+record CartesianCategory ℓₒ ℓₕ : Type (ℓ-suc (ℓ-max ℓₒ ℓₕ)) where
+    field
+        cat : Category ℓₒ ℓₕ
+        _,,_ : (A B : ob cat) → ob cat
+        ⊤ : ob cat
+        π₁ : {A B : ob cat} → cat [ A ,, B , A ]
+        π₂ : {A B : ob cat} → cat [ A ,, B , B ]
+        [_,,_] : {A B D : ob cat} → cat [ D , A ] → cat [ D , B ] → cat [ D , A ,, B ]
+        β₁ : {A B D : ob cat}{f : cat [ D , A ]}{g : cat [ D , B ]} → ([ f ,, g ] ⋆⟨ cat ⟩ π₁) ≡ f
+        β₂ : {A B D : ob cat}{f : cat [ D , A ]}{g : cat [ D , B ]} → ([ f ,, g ]) ⋆⟨ cat ⟩ π₂ ≡ g
+        η : {A B D : ob cat}{f : cat [ D , (A ,, B) ]} → [ (f ⋆⟨ cat ⟩ π₁) ,, (f ⋆⟨ cat ⟩ π₂) ] ≡ f
+        ! : {A : ob cat} → cat [ A , ⊤ ]
+        η₁ : {A : ob cat}(f : cat [ A , ⊤ ]) → f ≡ !
 module _ (G : Graph ℓ̬ ℓₑ) where
-    open Cubical.Categories.Category.Base.Category
     data Objects : Type ℓ̬ where
-        ↑_ : (A : Node G) → Objects
+        ↑_ : (A : Node G) → Objects -- include the generators
         _,_ : (A B : Objects) → Objects
         symm : {A B : Objects} → (A , B) ≡ (B , A)
         assoc : {A B C : Objects} → (A , (B , C)) ≡ ((A , B) , C)
-        ⊤ : Objects
+        ⊤ : Objects -- freely throw in a terminal objcet
         idL : {A : Objects} → (⊤ , A) ≡ A
         isSetObjects : isSet Objects
     open Objects
@@ -34,20 +48,32 @@ module _ (G : Graph ℓ̬ ℓₑ) where
         β₁ : {A B D : Objects}{f : Morphisms D A}{g : Morphisms D B} → ([ f , g ]) ⋆ₑ π₁ ≡ f
         β₂ : {A B D : Objects}{f : Morphisms D A}{g : Morphisms D B} → ([ f , g ]) ⋆ₑ π₂ ≡ g
         ηₑ : {A B D : Objects}{f : Morphisms D (A , B)} → [ (f ⋆ₑ π₁) , (f ⋆ₑ π₂) ] ≡ f
-
-    FreeCartesianCat : Category ℓ̬ (ℓ-max ℓ̬ ℓₑ)
+        !ₑ : {A : Objects} → Morphisms A ⊤
+        ηₑ₁ : {A : Objects}(f : Morphisms A ⊤) → f ≡ !ₑ
+    FreeCartesianCat : CartesianCategory ℓ̬ (ℓ-max ℓ̬ ℓₑ)
     FreeCartesianCat = record
-                        { ob = Objects
-                        ; Hom[_,_] = Morphisms
-                        ; id = idₑ
-                        ; _⋆_ = _⋆ₑ_
-                        ; ⋆IdL = ⋆ₑIdL
-                        ; ⋆IdR = ⋆ₑIdR
-                        ; ⋆Assoc = ⋆ₑAssoc
-                        ; isSetHom = isSetMorphisms
-                        }
-
-    open import Cubical.Categories.Constructions.Free.UnderlyingGraph
-
-    η : Interp G FreeCartesianCat
-    η = record { _$g_ = λ x → ↑ x ; _<$g>_ = ↑_ }
+                         { cat = record
+                            { ob = Objects
+                            ; Hom[_,_] = Morphisms
+                            ; id = idₑ
+                            ; _⋆_ = _⋆ₑ_
+                            ; ⋆IdL = ⋆ₑIdL
+                            ; ⋆IdR = ⋆ₑIdR
+                            ; ⋆Assoc = ⋆ₑAssoc
+                            ; isSetHom = isSetMorphisms
+                            }
+                         ; _,,_ = _,_
+                         ; ⊤ = ⊤
+                         ; π₁ = π₁
+                         ; π₂ = π₂
+                         ; [_,,_] = [_,_]
+                         ; β₁ = β₁
+                         ; β₂ = β₂
+                         ; η = ηₑ
+                         ; ! = !ₑ
+                         ; η₁ = ηₑ₁
+                         }
+    -- open import Cubical.Categories.Constructions.Free.UnderlyingGraph
+    -- η : Interp G FreeCartesianCat
+    -- η = record { _$g_ = λ x → ↑ x ; _<$g>_ = ↑_ }
+    -- module Semantics (𝓒 : Category ℓₒ ℓₕ)(𝑖 : GraphHom G (Ugr 𝓒)) where
