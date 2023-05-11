@@ -1,5 +1,6 @@
 {-# OPTIONS --safe #-}
 
+-- moving to set indexed
 module Cubical.Categories.Constructions.FreeCartesian.FreeCartesian where
 
 open import Cubical.Foundations.Prelude
