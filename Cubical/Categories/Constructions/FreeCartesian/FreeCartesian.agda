@@ -24,8 +24,14 @@ record CartesianCategory ℓₒ ℓₕ : Type (ℓ-suc (ℓ-max ℓₒ ℓₕ)) 
         η₁ : {A : ob cat}(f : cat [ A , ⊤ ]) → f ≡ ! -- uniqueness
 open import Cubical.Categories.Functor.Base
 open CartesianCategory hiding (η,⊤)
-blah : {𝓒 𝓓 : CartesianCategory _ _}{F : Functor (cat 𝓒) (cat 𝓓)}(A B : ob (cat 𝓒)) → F ⟅ A ,, B ⟆ ≡ (F ⟅ A ⟆) ,, (F ⟅ B ⟆)
-blah = ?
+pairₒ : (𝓒 : CartesianCategory ℓₒ ℓₕ)(A B : ob (cat 𝓒)) → ob (cat 𝓒)
+pairₒ = CartesianCategory._,,_
+syntax pairₒ C A B = A ,,⟨ C ⟩ B
+-- record CartesianFunctor ? where
+--     field
+--         functor : Functor 𝓒 𝓓
+--         {𝓒 𝓓 : CartesianCategory ℓₒ ℓₕ}{F : Functor (cat 𝓒) (cat 𝓓)}(A B : ob (cat 𝓒)) → F ⟅ A ,,⟨ 𝓒 ⟩ B ⟆ ≡ (F ⟅ A ⟆ ,,⟨ 𝓓 ⟩ (F ⟅ B ⟆))
+-- CartesianFunctor = {!!}
 module _ (G : Graph ℓ̬ ℓₑ) where
     -- data of the FreeCartesianCategory
     data Objects : Type ℓ̬ where
@@ -37,7 +43,7 @@ module _ (G : Graph ℓ̬ ℓₑ) where
         symm : {A B : Objects} → (A , B) ≡ (B , A)
         assoc : {A B C : Objects} → (A , (B , C)) ≡ ((A , B) , C)
         ⊤ₒ : Objects -- freely throw in a terminal objcet
-        idL : {A : Objects} → (⊤ , A) ≡ A
+        idL : {A : Objects} → (⊤ₒ , A) ≡ A
     data Morphisms : Objects → Objects → Type (ℓ-max ℓ̬ ℓₑ) where
         -- Category
         ↑_ : {A B : Node G} → (f : Edge G A B) → Morphisms (↑ A) (↑ B)
@@ -51,11 +57,11 @@ module _ (G : Graph ℓ̬ ℓₑ) where
         πₑ₁ : {A B : Objects} → Morphisms (A , B) A
         πₑ₂ : {A B : Objects} → Morphisms (A , B) B
         [_,_] : {A B D : Objects} → Morphisms D A → Morphisms D B → Morphisms D (A , B)
-        βₑ₁ : {A B D : Objects}{f : Morphisms D A}{g : Morphisms D B} → ([ f , g ]) ⋆ₑ π₁ ≡ f
-        βₑ₂ : {A B D : Objects}{f : Morphisms D A}{g : Morphisms D B} → ([ f , g ]) ⋆ₑ π₂ ≡ g
-        ηₑ : {A B D : Objects}{f : Morphisms D (A , B)} → [ (f ⋆ₑ π₁) , (f ⋆ₑ π₂) ] ≡ f
-        !ₑ : {A : Objects} → Morphisms A ⊤
-        ηₑ₁ : {A : Objects}(f : Morphisms A ⊤) → f ≡ !ₑ
+        βₑ₁ : {A B D : Objects}{f : Morphisms D A}{g : Morphisms D B} → ([ f , g ]) ⋆ₑ πₑ₁ ≡ f
+        βₑ₂ : {A B D : Objects}{f : Morphisms D A}{g : Morphisms D B} → ([ f , g ]) ⋆ₑ πₑ₂ ≡ g
+        ηₑ : {A B D : Objects}{f : Morphisms D (A , B)} → [ (f ⋆ₑ πₑ₁) , (f ⋆ₑ πₑ₂) ] ≡ f
+        !ₑ : {A : Objects} → Morphisms A ⊤ₒ
+        ηₑ₁ : {A : Objects}(f : Morphisms A ⊤ₒ) → f ≡ !ₑ
     FreeCartesianCat : CartesianCategory ℓ̬ (ℓ-max ℓ̬ ℓₑ)
     FreeCartesianCat = record
                          { cat = record
@@ -69,13 +75,13 @@ module _ (G : Graph ℓ̬ ℓₑ) where
                             ; isSetHom = isSetMorphisms
                             }
                          ; _,,_ = _,_
-                         ; ⊤ = ⊤
-                         ; π₁ = π₁
-                         ; π₂ = π₂
+                         ; ⊤ = ⊤ₒ
+                         ; π₁ = πₑ₁
+                         ; π₂ = πₑ₂
                          ; [_,,_] = [_,_]
-                         ; β₁ = β₁
-                         ; β₂ = β₂
-                         ; η = ηₑ
+                         ; β₁ = βₑ₁
+                         ; β₂ = βₑ₂
+                         ; ηₚ = ηₑ
                          ; ! = !ₑ
                          ; η₁ = ηₑ₁
                          }
