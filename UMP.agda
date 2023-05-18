@@ -1,3 +1,5 @@
+{-# OPTIONS --safe #-}
+
 -- | Should probably rename this to "products"
 module UMP where
 

@@ -21,7 +21,7 @@ module _ (G : Graph ℓ̬ ℓₑ) where
         ⋆IdL : {A B : FreeCartesianCategory₀} (f : FreeCartesianCategory₁ A B) → id ⋆ f ≡ f
         ⋆IdR : {A B : FreeCartesianCategory₀} (f : FreeCartesianCategory₁ A B) → f ⋆ id ≡ f
         ⋆Assoc : {A B C D : FreeCartesianCategory₀} (f : FreeCartesianCategory₁ A B)(g : FreeCartesianCategory₁ B C)(h : FreeCartesianCategory₁ C D) → (f ⋆ g) ⋆ h ≡ f ⋆ (g ⋆ h)
-        isSetMorphisms : {A B : FreeCartesianCategory₀} → isSet (FreeCartesianCategory₁ A B) -- TODO: why do we need this?
+        isSetHom : {A B : FreeCartesianCategory₀} → isSet (FreeCartesianCategory₁ A B) -- TODO: why do we need this?
         -- CartesianCategory
         -- TODO: how do you module this so it isn't terrible
         π : {J : FinSet ℓ-zero}{obs : ⟨ J ⟩ → FreeCartesianCategory₀} → (j : ⟨ J ⟩) → FreeCartesianCategory₁ (Π J obs) (obs j) 
@@ -29,6 +29,22 @@ module _ (G : Graph ℓ̬ ℓₑ) where
         prod-I : {J : FinSet ℓ-zero}{obs : ⟨ J ⟩ → FreeCartesianCategory₀}{D : FreeCartesianCategory₀} → (fs : (j : ⟨ J ⟩) → FreeCartesianCategory₁ D (obs j)) → FreeCartesianCategory₁ D (Π J obs)
         β : {J : FinSet ℓ-zero}{obs : ⟨ J ⟩ → FreeCartesianCategory₀}{D : FreeCartesianCategory₀} → (fs : (j : ⟨ J ⟩) → FreeCartesianCategory₁ D (obs j)) → (j : ⟨ J ⟩) → (prod-I {J} fs) ⋆ π j ≡  fs j
         η : {J : FinSet ℓ-zero}{obs : ⟨ J ⟩ → FreeCartesianCategory₀}{D : FreeCartesianCategory₀}{f : FreeCartesianCategory₁ D (Π J obs)} → prod-I (λ j → f ⋆ (π j)) ≡ f
+    open import UMP
+    open import Cubical.Categories.Presheaf.Representable
+    FreeCartesianCat : CartesianCategory (ℓ-suc ℓ̬) (ℓ-suc (ℓ-max ℓ̬ ℓₑ))
+    FreeCartesianCat = record { cat = cat
+                              ; finite-products = λ J' obs → record { vertex = Π J' obs ; element = π ; universal = record { coinduction = prod-I ; commutes = λ ϕ i j → β {J'} ϕ j i ; is-uniq = λ ϕ f x → f ≡⟨ sym η ⟩ prod-I (λ j → f ⋆ (π j)) ≡⟨ (λ i → prod-I (x i)) ⟩ prod-I ϕ ∎} } }
+        where
+        cat : Category (ℓ-suc ℓ̬) (ℓ-suc (ℓ-max ℓ̬ ℓₑ))
+        cat = record { ob = FreeCartesianCategory₀
+                     ; Hom[_,_] = FreeCartesianCategory₁
+                     ; id = FreeCartesianCategory₁.id
+                     ; _⋆_ = FreeCartesianCategory₁._⋆_
+                     ; ⋆IdL = FreeCartesianCategory₁.⋆IdL
+                     ; ⋆IdR = FreeCartesianCategory₁.⋆IdR
+                     ; ⋆Assoc = FreeCartesianCategory₁.⋆Assoc
+                     ; isSetHom = FreeCartesianCategory₁.isSetHom
+                     }
 --     FreeCartesianCat : CartesianCategory ℓ̬ (ℓ-max ℓ̬ ℓₑ)
 --     FreeCartesianCat = record
 --                          { cat = record
