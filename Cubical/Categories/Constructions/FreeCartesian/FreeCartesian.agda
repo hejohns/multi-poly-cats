@@ -5,83 +5,30 @@ module Cubical.Categories.Constructions.FreeCartesian.FreeCartesian where
 open import Cubical.Foundations.Prelude
 open import Cubical.Categories.Category.Base
 open import Cubical.Data.Graph.Base
-private variable ℓ̬ ℓₑ : Level
-private variable ℓₒ ℓₕ : Level
--- -- TODO: names tbd
--- open Cubical.Categories.Category.Base.Category
--- record CartesianCategory ℓₒ ℓₕ : Type (ℓ-suc (ℓ-max ℓₒ ℓₕ)) where
---     field
---         cat : Category ℓₒ ℓₕ
---         _,,_ : (A B : ob cat) → ob cat -- binary product
---         ⊤ : ob cat -- terminal object
---         π₁ : {A B : ob cat} → cat [ A ,, B , A ] -- projections
---         π₂ : {A B : ob cat} → cat [ A ,, B , B ]
---         [_,,_] : {A B D : ob cat} → cat [ D , A ] → cat [ D , B ] → cat [ D , A ,, B ] -- pairing (ie existence of morphism into terminal cone)
---         β₁ : {A B D : ob cat}{f : cat [ D , A ]}{g : cat [ D , B ]} → ([ f ,, g ] ⋆⟨ cat ⟩ π₁) ≡ f -- commuting conditions
---         β₂ : {A B D : ob cat}{f : cat [ D , A ]}{g : cat [ D , B ]} → ([ f ,, g ]) ⋆⟨ cat ⟩ π₂ ≡ g
---         ηₚ : {A B D : ob cat}{f : cat [ D , (A ,, B) ]} → [ (f ⋆⟨ cat ⟩ π₁) ,, (f ⋆⟨ cat ⟩ π₂) ] ≡ f -- ie uniqueness of morphism into terminal cone
---         ! : {A : ob cat} → cat [ A , ⊤ ] -- existence
---         η₁ : {A : ob cat}(f : cat [ A , ⊤ ]) → f ≡ ! -- uniqueness
--- open import Cubical.Categories.Functor.Base
--- open CartesianCategory hiding (η,⊤)
--- pairₒ : (𝓒 : CartesianCategory ℓₒ ℓₕ)(A B : ob (cat 𝓒)) → ob (cat 𝓒)
--- pairₒ = CartesianCategory._,,_
--- syntax pairₒ C A B = A ,,⟨ C ⟩ B
--- -- record CartesianFunctor ? where
--- --     field
--- --         functor : Functor 𝓒 𝓓
--- --         {𝓒 𝓓 : CartesianCategory ℓₒ ℓₕ}{F : Functor (cat 𝓒) (cat 𝓓)}(A B : ob (cat 𝓒)) → F ⟅ A ,,⟨ 𝓒 ⟩ B ⟆ ≡ (F ⟅ A ⟆ ,,⟨ 𝓓 ⟩ (F ⟅ B ⟆))
--- -- CartesianFunctor = {!!}
-open import Cubical.Data.FinSet.Base
-open import Cubical.Foundations.Structure
+private variable ℓ̬ ℓₑ : Level -- (graph) vertice and edge levels
+private variable ℓₒ ℓₕ : Level -- (category) object and hom levels)
 module _ (G : Graph ℓ̬ ℓₑ) where
-    data FreeCartesianCategory₀ : Type (ℓ-suc ℓ̬) where
+    open import Cubical.Data.FinSet.Base
+    open import Cubical.Foundations.Structure
+    data FreeCartesianCategory₀ : Type (ℓ-suc ℓ̬) where -- objects
         ↑_ : Node G → FreeCartesianCategory₀ -- inclusion of generators
         Π : (J : FinSet ℓ-zero) → (⟨ J ⟩ → FreeCartesianCategory₀) → FreeCartesianCategory₀ -- see TypeWithStr for ⟨_⟩
-    data FreeCartesianCategory₁ : FreeCartesianCategory₀ → FreeCartesianCategory₀ → Type (ℓ-suc (ℓ-max ℓ̬ ℓₑ)) where
+    data FreeCartesianCategory₁ : FreeCartesianCategory₀ → FreeCartesianCategory₀ → Type (ℓ-suc (ℓ-max ℓ̬ ℓₑ)) where -- morphisms
         -- Category
-        ↑_ : {A B : Node G}(f : Edge G A B) → FreeCartesianCategory₁ (↑ A) (↑ B)
-        idₑ : {A : FreeCartesianCategory₀} → FreeCartesianCategory₁ A A
-        _⋆ₑ_ : {A B C : FreeCartesianCategory₀} → FreeCartesianCategory₁ A B → FreeCartesianCategory₁ B C → FreeCartesianCategory₁ A C
-        ⋆ₑIdL : {A B : FreeCartesianCategory₀} (f : FreeCartesianCategory₁ A B) → idₑ ⋆ₑ f ≡ f
-        ⋆ₑIdR : {A B : FreeCartesianCategory₀} (f : FreeCartesianCategory₁ A B) → f ⋆ₑ idₑ ≡ f
-        ⋆ₑAssoc : {A B C D : FreeCartesianCategory₀} (f : FreeCartesianCategory₁ A B)(g : FreeCartesianCategory₁ B C)(h : FreeCartesianCategory₁ C D) → (f ⋆ₑ g) ⋆ₑ h ≡ f ⋆ₑ (g ⋆ₑ h)
-        isSetMorphisms : {A B : FreeCartesianCategory₀} → isSet (FreeCartesianCategory₁ A B)
+        ↑_ : {A B : Node G}(f : Edge G A B) → FreeCartesianCategory₁ (↑ A) (↑ B) -- inclusion of generators
+        id : {A : FreeCartesianCategory₀} → FreeCartesianCategory₁ A A
+        _⋆_ : {A B C : FreeCartesianCategory₀} → FreeCartesianCategory₁ A B → FreeCartesianCategory₁ B C → FreeCartesianCategory₁ A C -- diagrammatic order composition
+        ⋆IdL : {A B : FreeCartesianCategory₀} (f : FreeCartesianCategory₁ A B) → id ⋆ f ≡ f
+        ⋆IdR : {A B : FreeCartesianCategory₀} (f : FreeCartesianCategory₁ A B) → f ⋆ id ≡ f
+        ⋆Assoc : {A B C D : FreeCartesianCategory₀} (f : FreeCartesianCategory₁ A B)(g : FreeCartesianCategory₁ B C)(h : FreeCartesianCategory₁ C D) → (f ⋆ g) ⋆ h ≡ f ⋆ (g ⋆ h)
+        isSetMorphisms : {A B : FreeCartesianCategory₀} → isSet (FreeCartesianCategory₁ A B) -- TODO: why do we need this?
         -- CartesianCategory
+        -- TODO: how do you module this so it isn't terrible
         π : {J : FinSet ℓ-zero}{obs : ⟨ J ⟩ → FreeCartesianCategory₀} → (j : ⟨ J ⟩) → FreeCartesianCategory₁ (Π J obs) (obs j) 
+        -- why is this called prod-I ?
         prod-I : {J : FinSet ℓ-zero}{obs : ⟨ J ⟩ → FreeCartesianCategory₀}{D : FreeCartesianCategory₀} → (fs : (j : ⟨ J ⟩) → FreeCartesianCategory₁ D (obs j)) → FreeCartesianCategory₁ D (Π J obs)
-        β : {J : FinSet ℓ-zero}{obs : ⟨ J ⟩ → FreeCartesianCategory₀}{D : FreeCartesianCategory₀} → (fs : (j : ⟨ J ⟩) → FreeCartesianCategory₁ D (obs j))(j : ⟨ J ⟩) → (prod-I {J}{obs}{D} fs) ⋆ₑ π j ≡  fs j
-        η : {J : FinSet ℓ-zero}{obs : ⟨ J ⟩ → FreeCartesianCategory₀}{D : FreeCartesianCategory₀}{f : FreeCartesianCategory₁ D (Π J obs)} → prod-I (λ j → f ⋆ₑ (π j)) ≡ f
--- module _ (G : Graph ℓ̬ ℓₑ) where
---     -- data of the FreeCartesianCategory
---     data Objects : Type ℓ̬ where
---         -- Category
---         ↑_ : (A : Node G) → Objects -- include the generators
---         isSetObjects : isSet Objects
---         -- CartesianCategory
---         _,_ : (A B : Objects) → Objects -- binary product
---         symm : {A B : Objects} → (A , B) ≡ (B , A)
---         assoc : {A B C : Objects} → (A , (B , C)) ≡ ((A , B) , C)
---         ⊤ₒ : Objects -- freely throw in a terminal objcet
---         idL : {A : Objects} → (⊤ₒ , A) ≡ A
---     data Morphisms : Objects → Objects → Type (ℓ-max ℓ̬ ℓₑ) where
---         -- Category
---         ↑_ : {A B : Node G} → (f : Edge G A B) → Morphisms (↑ A) (↑ B)
---         idₑ : {A : Objects} → Morphisms A A
---         _⋆ₑ_ : {A B C : Objects} → Morphisms A B → Morphisms B C → Morphisms A C
---         ⋆ₑIdL : {A B : Objects} (e : Morphisms A B) → idₑ ⋆ₑ e ≡ e
---         ⋆ₑIdR : {A B : Objects} (e : Morphisms A B) → e ⋆ₑ idₑ ≡ e
---         ⋆ₑAssoc : {A B C D : Objects} (e : Morphisms A B)(f : Morphisms B C)(g : Morphisms C D) → (e ⋆ₑ f) ⋆ₑ g ≡ e ⋆ₑ (f ⋆ₑ g)
---         isSetMorphisms : {A B : Objects} → isSet (Morphisms A B)
---         -- CartesianCategory
---         πₑ₁ : {A B : Objects} → Morphisms (A , B) A
---         πₑ₂ : {A B : Objects} → Morphisms (A , B) B
---         [_,_] : {A B D : Objects} → Morphisms D A → Morphisms D B → Morphisms D (A , B)
---         βₑ₁ : {A B D : Objects}{f : Morphisms D A}{g : Morphisms D B} → ([ f , g ]) ⋆ₑ πₑ₁ ≡ f
---         βₑ₂ : {A B D : Objects}{f : Morphisms D A}{g : Morphisms D B} → ([ f , g ]) ⋆ₑ πₑ₂ ≡ g
---         ηₑ : {A B D : Objects}{f : Morphisms D (A , B)} → [ (f ⋆ₑ πₑ₁) , (f ⋆ₑ πₑ₂) ] ≡ f
---         !ₑ : {A : Objects} → Morphisms A ⊤ₒ
---         ηₑ₁ : {A : Objects}(f : Morphisms A ⊤ₒ) → f ≡ !ₑ
+        β : {J : FinSet ℓ-zero}{obs : ⟨ J ⟩ → FreeCartesianCategory₀}{D : FreeCartesianCategory₀} → (fs : (j : ⟨ J ⟩) → FreeCartesianCategory₁ D (obs j)) → (j : ⟨ J ⟩) → (prod-I {J} fs) ⋆ π j ≡  fs j
+        η : {J : FinSet ℓ-zero}{obs : ⟨ J ⟩ → FreeCartesianCategory₀}{D : FreeCartesianCategory₀}{f : FreeCartesianCategory₁ D (Π J obs)} → prod-I (λ j → f ⋆ (π j)) ≡ f
 --     FreeCartesianCat : CartesianCategory ℓ̬ (ℓ-max ℓ̬ ℓₑ)
 --     FreeCartesianCat = record
 --                          { cat = record
