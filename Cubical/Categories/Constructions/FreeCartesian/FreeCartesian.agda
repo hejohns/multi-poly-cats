@@ -47,8 +47,9 @@ module Construction (G : Graph ℓ̬ ℓₑ) where
                      }
     open import Cubical.Categories.RezkCompletion
     open Cubical.Categories.RezkCompletion.RezkByYoneda
+    open import Cubical.Categories.Functor.Base
     UnivalentFreeCartesianCategory : CartesianCategory (ℓ-suc (ℓ-suc (ℓ-max ℓ̬ ℓₑ))) (ℓ-suc (ℓ-max ℓ̬ ℓₑ))
-    UnivalentFreeCartesianCategory = record { cat = YonedaImage (CartesianCategory.cat FreeCartesianCategory) ; finite-products = λ J₁ obs → record { vertex = {!!} ; element = {!!} ; universal = {!!} } }
+    UnivalentFreeCartesianCategory = record { cat = YonedaImage (CartesianCategory.cat FreeCartesianCategory) ; finite-products = λ J' obs → record { vertex = {!ToYonedaImage ⟅ Π J' obs ⟆!} ; element = {!!} ; universal = {!!} } }
     -- YonedaImage (CartesianCategory.cat FreeCartesianCategory)
 module Semantics (G : Graph ℓ̬ ℓₑ) where
     open import Cubical.Categories.Constructions.Free.UnderlyingGraph
