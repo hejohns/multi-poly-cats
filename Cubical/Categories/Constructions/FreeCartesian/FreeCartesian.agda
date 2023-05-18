@@ -7,10 +7,10 @@ open import Cubical.Categories.Category.Base
 open import Cubical.Data.Graph.Base
 private variable ℓ̬ ℓₑ : Level -- (graph) vertice and edge levels
 private variable ℓₒ ℓₕ : Level -- (category) object and hom levels)
-module _ (G : Graph ℓ̬ ℓₑ) where
+module Construction (G : Graph ℓ̬ ℓₑ) where
     open import Cubical.Data.FinSet.Base
     open import Cubical.Foundations.Structure
-    data FreeCartesianCategory₀ : Type (ℓ-suc ℓ̬) where -- objects
+    data FreeCartesianCategory₀ : Type (ℓ-suc (ℓ-max ℓ̬ ℓₑ)) where -- objects
         ↑_ : Node G → FreeCartesianCategory₀ -- inclusion of generators
         Π : (J : FinSet ℓ-zero) → (⟨ J ⟩ → FreeCartesianCategory₀) → FreeCartesianCategory₀ -- see TypeWithStr for ⟨_⟩
     data FreeCartesianCategory₁ : FreeCartesianCategory₀ → FreeCartesianCategory₀ → Type (ℓ-suc (ℓ-max ℓ̬ ℓₑ)) where -- morphisms
@@ -31,11 +31,11 @@ module _ (G : Graph ℓ̬ ℓₑ) where
         η : {J : FinSet ℓ-zero}{obs : ⟨ J ⟩ → FreeCartesianCategory₀}{D : FreeCartesianCategory₀}{f : FreeCartesianCategory₁ D (Π J obs)} → prod-I (λ j → f ⋆ (π j)) ≡ f
     open import UMP
     open import Cubical.Categories.Presheaf.Representable
-    FreeCartesianCat : CartesianCategory (ℓ-suc ℓ̬) (ℓ-suc (ℓ-max ℓ̬ ℓₑ))
-    FreeCartesianCat = record { cat = cat
+    FreeCartesianCategory : CartesianCategory (ℓ-suc (ℓ-max ℓ̬ ℓₑ)) (ℓ-suc (ℓ-max ℓ̬ ℓₑ))
+    FreeCartesianCategory = record { cat = cat
                               ; finite-products = λ J' obs → record { vertex = Π J' obs ; element = π ; universal = record { coinduction = prod-I ; commutes = λ ϕ i j → β {J'} ϕ j i ; is-uniq = λ ϕ f x → f ≡⟨ sym η ⟩ prod-I (λ j → f ⋆ (π j)) ≡⟨ (λ i → prod-I (x i)) ⟩ prod-I ϕ ∎} } }
         where
-        cat : Category (ℓ-suc ℓ̬) (ℓ-suc (ℓ-max ℓ̬ ℓₑ))
+        cat : Category (ℓ-suc (ℓ-max ℓ̬ ℓₑ)) (ℓ-suc (ℓ-max ℓ̬ ℓₑ))
         cat = record { ob = FreeCartesianCategory₀
                      ; Hom[_,_] = FreeCartesianCategory₁
                      ; id = FreeCartesianCategory₁.id
@@ -45,30 +45,17 @@ module _ (G : Graph ℓ̬ ℓₑ) where
                      ; ⋆Assoc = FreeCartesianCategory₁.⋆Assoc
                      ; isSetHom = FreeCartesianCategory₁.isSetHom
                      }
---     FreeCartesianCat : CartesianCategory ℓ̬ (ℓ-max ℓ̬ ℓₑ)
---     FreeCartesianCat = record
---                          { cat = record
---                             { ob = Objects
---                             ; Hom[_,_] = Morphisms
---                             ; id = idₑ
---                             ; _⋆_ = _⋆ₑ_
---                             ; ⋆IdL = ⋆ₑIdL
---                             ; ⋆IdR = ⋆ₑIdR
---                             ; ⋆Assoc = ⋆ₑAssoc
---                             ; isSetHom = isSetMorphisms
---                             }
---                          ; _,,_ = _,_
---                          ; ⊤ = ⊤ₒ
---                          ; π₁ = πₑ₁
---                          ; π₂ = πₑ₂
---                          ; [_,,_] = [_,_]
---                          ; β₁ = βₑ₁
---                          ; β₂ = βₑ₂
---                          ; ηₚ = ηₑ
---                          ; ! = !ₑ
---                          ; η₁ = ηₑ₁
---                          }
---     open import Cubical.Categories.Constructions.Free.UnderlyingGraph
---     η : Interp G (cat FreeCartesianCat)
---     η = record { _$g_ = λ x → ↑ x ; _<$g>_ = ↑_ }
---     module Semantics (𝓒 : CartesianCategory ℓₒ ℓₕ)(𝑖 : GraphHom G (Ugr (cat 𝓒))) where
+    open import Cubical.Categories.RezkCompletion
+    open Cubical.Categories.RezkCompletion.RezkByYoneda
+    UnivalentFreeCartesianCategory : CartesianCategory (ℓ-suc (ℓ-suc (ℓ-max ℓ̬ ℓₑ))) (ℓ-suc (ℓ-max ℓ̬ ℓₑ))
+    UnivalentFreeCartesianCategory = record { cat = YonedaImage (CartesianCategory.cat FreeCartesianCategory) ; finite-products = λ J₁ obs → record { vertex = {!!} ; element = {!!} ; universal = {!!} } }
+    -- YonedaImage (CartesianCategory.cat FreeCartesianCategory)
+module Semantics (G : Graph ℓ̬ ℓₑ) where
+    open import Cubical.Categories.Constructions.Free.UnderlyingGraph
+    open import UMP
+    open Construction hiding (η)
+    η : Interp G (CartesianCategory.cat (FreeCartesianCategory G))
+    η = record { _$g_ = λ x → ↑ x
+               ; _<$g>_ = ↑_
+               }
+    module Properties (𝓒 : CartesianCategory ℓₒ ℓₕ)(𝑖 : GraphHom G (Ugr (CartesianCategory.cat 𝓒))) where
