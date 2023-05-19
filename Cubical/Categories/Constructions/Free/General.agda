@@ -47,6 +47,24 @@ module _ (G : Graph ℓg ℓg') where
     FreeCat .⋆Assoc = ⋆ₑAssoc
     FreeCat .isSetHom = isSetExp
 
+    open import Cubical.Categories.RezkCompletion
+    open Cubical.Categories.RezkCompletion.RezkByYoneda
+    open import Cubical.Categories.Functor.Base
+    -- TODO: this is just lifting an arbitrary category
+    FreeCat' : Category (ℓ-max ℓg ℓg') (ℓ-max ℓg ℓg')
+    FreeCat' = record
+                 { ob = Lift {ℓg} {ℓg'} (ob FreeCat)
+                 ; Hom[_,_] = λ A B → Lift {ℓ-max ℓg ℓg'} {ℓ-max ℓg ℓg'} (FreeCat [ lower A , lower B ])
+                 ; id = lift (id FreeCat)
+                 ; _⋆_ = λ f g → lift (lower f ⋆⟨ FreeCat ⟩ lower g)
+                 ; ⋆IdL = λ f i → lift ((⋆IdL FreeCat) (lower f) i )
+                 ; ⋆IdR = λ f i → lift ((⋆IdR FreeCat) (lower f) i )
+                 ; ⋆Assoc = λ f g h i → lift ((⋆Assoc FreeCat) (lower f) (lower g) (lower h) i)
+                 ; isSetHom = λ f g → λ eq1 eq2 → λ i → λ ifg → lift ((isSetHom FreeCat) (lower f) (lower g) (λ i₁ → lower (eq1 i₁)) (λ i₂ → lower (eq2 i₂)) i ifg)
+                 }
+    UnivalentFreeCat : Category _ _
+    UnivalentFreeCat = YonedaImage FreeCat'
+
     η : Interp G FreeCat
     η ._$g_ = λ z → z
     η ._<$g>_ = ↑_
