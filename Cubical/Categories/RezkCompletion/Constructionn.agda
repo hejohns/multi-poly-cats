@@ -81,4 +81,13 @@ module RezkByHIT (C : Category ℓ ℓ') where
   open Cubical.Categories.Category.isIso
   Ĉ₁ : Ĉ₀ → Ĉ₀ → Type _
   Ĉ₁ (i a) (i b) = (C [ a , b ])
-  Ĉ₁ (i a) (j {b} {b'} e i') = isoToPath (iso (λ f → f ⋆⟨ C ⟩ e .fst) (λ g → g ⋆⟨ C ⟩ e .snd .inv) (λ g → g ⋆⟨ C ⟩ e .snd .inv ⋆⟨ C ⟩ e .fst ≡⟨ C .⋆Assoc g (e .snd .inv) (e .fst) ⟩ g ⋆⟨ C ⟩ (e .snd .inv ⋆⟨ C ⟩ e .fst)  ≡⟨ congS (λ g' → g ⋆⟨ C ⟩ g') (e .snd .sec) ⟩ g ⋆⟨ C ⟩ C .id ≡⟨ C .⋆IdR g ⟩ g ∎) (λ f → {!!})) i'
+  Ĉ₁ (i a) (j {b} {b'} e i') = isoToPath (iso iso→ iso⁻¹← (λ g → g ⋆⟨ C ⟩ e⁻¹← ⋆⟨ C ⟩ e→ ≡⟨ C .⋆Assoc g e⁻¹← e→ ⟩ g ⋆⟨ C ⟩ (e⁻¹← ⋆⟨ C ⟩ e→)  ≡⟨ congS (λ eq → g ⋆⟨ C ⟩ eq) (e .snd .sec) ⟩ g ⋆⟨ C ⟩ C .id ≡⟨ C .⋆IdR g ⟩ g ∎) (λ f → f ⋆⟨ C ⟩ e→ ⋆⟨ C ⟩ e⁻¹← ≡⟨ C .⋆Assoc f e→ e⁻¹← ⟩ f ⋆⟨ C ⟩ (e→ ⋆⟨ C ⟩ e⁻¹←) ≡⟨ congS (λ eq → f ⋆⟨ C ⟩ eq) (e .snd .ret) ⟩ f ⋆⟨ C ⟩ C .id ≡⟨ C .⋆IdR f ⟩ f ∎ )) i'
+    where
+    e→ = e .fst
+    e⁻¹← = e .snd .inv
+    -- let f ∈ C [ a , b ], g ∈ C [ a , b' ]
+    -- explicit types to manually supply contraints
+    iso→ : C [ a , b ] → C [ a , b' ]
+    iso→ f = f ⋆⟨ C ⟩ e→
+    iso⁻¹← : C [ a , b' ] → C [ a , b ]
+    iso⁻¹← g = g ⋆⟨ C ⟩ e⁻¹←
