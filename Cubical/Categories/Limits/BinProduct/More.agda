@@ -9,6 +9,7 @@ open import Cubical.Data.Sigma hiding (_×_)
 open import Cubical.Categories.Category
 open import Cubical.Categories.Constructions.BinProduct
 open import Cubical.Categories.Constructions.BinProduct.More
+import Cubical.Categories.Constructions.BinProduct.Redundant.Base as R
 open import Cubical.Categories.Functors.HomFunctor
 open import Cubical.Categories.Functors.Constant
 open import Cubical.Categories.Functor
@@ -18,6 +19,7 @@ open import Cubical.Categories.Limits.BinProduct
 open import Cubical.Categories.Presheaf.Representable
 open import Cubical.Categories.Adjoint.UniversalElements
 open import Cubical.Categories.Bifunctor.Base
+import Cubical.Categories.Bifunctor.Redundant as R
 
 private
   variable
@@ -31,13 +33,19 @@ open Category
 open Functor
 
 module _ (C : Category ℓ ℓ') where
-  BinProductToRepresentable : ∀ {a b} → BinProduct C a b → RightAdjointAt _ _ (Δ C) (a , b)
+  BinProductToRepresentable : ∀ {a b} → BinProduct C a b →
+                              RightAdjointAt _ _ (Δ C) (a , b)
   BinProductToRepresentable bp .vertex = bp .binProdOb
   BinProductToRepresentable bp .element = (bp .binProdPr₁) , (bp .binProdPr₂)
-  BinProductToRepresentable bp .universal .coinduction (f1 , f2) = bp .univProp f1 f2 .fst .fst
-  BinProductToRepresentable bp .universal .commutes (f1 , f2) = cong₂ _,_ (up .fst .snd .fst) (up .fst .snd .snd)
+  BinProductToRepresentable bp .universal .coinduction (f1 , f2) =
+    bp .univProp f1 f2 .fst .fst
+  BinProductToRepresentable bp .universal .commutes (f1 , f2) =
+    cong₂ _,_ (up .fst .snd .fst) (up .fst .snd .snd)
     where up = bp .univProp f1 f2
-  BinProductToRepresentable bp .universal .is-uniq (f1 , f2) fp commutes = cong fst (sym (bp .univProp f1 f2 .snd (fp , cong fst commutes , cong snd commutes)))
+  BinProductToRepresentable bp .universal .is-uniq (f1 , f2) fp commutes =
+    cong fst
+      (sym (bp .univProp f1 f2 .snd
+        (fp , cong fst commutes , cong snd commutes)))
 
   module _ (bp : BinProducts C) where
     BinProductsToUnivElts : RightAdjoint C (C ×C C) (Δ C)
@@ -63,14 +71,21 @@ module _ (C : Category ℓ ℓ') where
     BinProductWithToRepresentable b .vertex = bp b .binProdOb
     BinProductWithToRepresentable b .element .fst = bp b .binProdPr₁
     BinProductWithToRepresentable b .element .snd = bp b .binProdPr₂
-    BinProductWithToRepresentable b .universal .coinduction (f1 , f2) = bp b .univProp f1 f2 .fst .fst
-    BinProductWithToRepresentable b .universal .commutes (f1 , f2) = cong₂ _,_ (up .fst .snd .fst) (up .fst .snd .snd)
+    BinProductWithToRepresentable b .universal .coinduction (f1 , f2) =
+      bp b .univProp f1 f2 .fst .fst
+    BinProductWithToRepresentable b .universal .commutes (f1 , f2) =
+      cong₂ _,_ (up .fst .snd .fst) (up .fst .snd .snd)
       where up = bp b .univProp f1 f2
-    BinProductWithToRepresentable b .universal .is-uniq (f1 , f2) fp commutes = cong fst (sym (bp b .univProp f1 f2 .snd (fp , cong fst commutes , cong snd commutes)))
+    BinProductWithToRepresentable b .universal .is-uniq (f1 , f2) fp commutes =
+      cong fst (sym (bp b .univProp f1 f2 .snd
+        (fp , cong fst commutes , cong snd commutes)))
 
     BinProductWithF = ParamUnivElt→Functor _ _ _ BinProductWithToRepresentable
 
-    _ : ∀ {b b'}(f : C [ b , b' ]) → BinProductWithF ⟪ f ⟫ ≡ bp b' .univProp (bp b .binProdPr₁) (f ∘⟨ C ⟩ bp b .binProdPr₂) .fst .fst
+    _ : ∀ {b b'}(f : C [ b , b' ]) →
+        BinProductWithF ⟪ f ⟫ ≡
+          bp b' .univProp (bp b .binProdPr₁)
+            (f ∘⟨ C ⟩ bp b .binProdPr₂) .fst .fst
     _ = λ f → refl
     module ProdsWithNotation where
       private
@@ -79,12 +94,13 @@ module _ (C : Category ℓ ℓ') where
       a× b = ues b .vertex
 
       π₁ : C [ a× b , a ]
-      π₁ {b} = ues b .element .fst 
+      π₁ {b} = ues b .element .fst
 
       π₂ : C [ a× b , b ]
       π₂ {b} = ues b .element .snd
 
-      -- TODO: π₁, π₂ are natural transformations as well, which should follow by general fact that universal elements are natural
+      -- TODO: π₁, π₂ are natural transformations as well,
+      -- which should follow by general fact that universal elements are natural
 
       _,p_ : C [ c , a ] → C [ c , b ] → C [ c , a× b ]
       f ,p g = ues _ .universal .coinduction (f , g)
@@ -94,7 +110,7 @@ module _ (C : Category ℓ ℓ') where
       ×p_ = BinProductWithF .F-hom
 
       ×β₁ : π₁ ∘⟨ C ⟩ (f ,p g) ≡ f
-      ×β₁ = cong fst (ues _ .universal .commutes _) 
+      ×β₁ = cong fst (ues _ .universal .commutes _)
 
       ×β₂ : π₂ ∘⟨ C ⟩ (f ,p g) ≡ g
       ×β₂ = cong snd (ues _ .universal .commutes _)
@@ -108,8 +124,10 @@ module _ (C : Category ℓ ℓ') where
       ,p-natural : ( f ,p g ) ∘⟨ C ⟩ h ≡ ((f ∘⟨ C ⟩ h) ,p (g ∘⟨ C ⟩ h))
       ,p-natural = coinduction-natural (ues _ .universal) _ _
 
-      ×-extensionality : π₁ ∘⟨ C ⟩ f ≡ π₁ ∘⟨ C ⟩ g → π₂ ∘⟨ C ⟩ f ≡ π₂ ∘⟨ C ⟩ g → f ≡ g
-      ×-extensionality p1 p2 = determined-by-elt (ues _ .universal) (cong₂ _,_ p1 p2)
+      ×-extensionality : π₁ ∘⟨ C ⟩ f ≡
+                         π₁ ∘⟨ C ⟩ g → π₂ ∘⟨ C ⟩ f ≡ π₂ ∘⟨ C ⟩ g → f ≡ g
+      ×-extensionality p1 p2 =
+        determined-by-elt (ues _ .universal) (cong₂ _,_ p1 p2)
 
   module Notation (bp : BinProducts C) where
     private
@@ -133,9 +151,30 @@ module _ (C : Category ℓ ℓ') where
     _×p_ : C [ a , b ] → C [ c , d ] → C [ a × c , b × d ]
     f ×p g = (f ∘⟨ C ⟩ π₁) ,p (g ∘⟨ C ⟩ π₂)
 
-    -- Demonstrating the definitional behavior of BinProductF
-    _ : (f ∘⟨ C ⟩ π₁) ,p (g ∘⟨ C ⟩ π₂) ≡ BinProductF bp ⟪ f , g ⟫
-    _ = refl
+    ×Bif : R.Bifunctor C C C
+    ×Bif = R.mkBifunctorParAx B where
+      open R.BifunctorParAx
+      B : R.BifunctorParAx C C C
+      B .Bif-ob = _×_
+      B .Bif-homL f d = (f ∘⟨ C ⟩ π₁) ,p π₂
+      B .Bif-homR c g = π₁ ,p (g ∘⟨ C ⟩ π₂)
+      B .Bif-hom× = _×p_
+      B .Bif-×-id = ×pF .F-id
+      B .Bif-×-seq f f' g g' = ×pF .F-seq (f , g) (f' , g')
+      B .Bif-L×-agree f = cong₂ _,p_ refl (sym (C .⋆IdR _))
+      B .Bif-R×-agree g = cong₂ _,p_ (sym (C .⋆IdR _)) refl
+
+    private
+      open R.Bifunctor
+      -- Demonstrating the definitional behavior of ×Bif
+      _ : ((f ∘⟨ C ⟩ π₁) ,p (g ∘⟨ C ⟩ π₂)) ≡ (Bif-hom× ×Bif f g)
+      _ = refl
+
+      _ : ((f ∘⟨ C ⟩ π₁) ,p π₂) ≡ (Bif-homL ×Bif f d)
+      _ = refl
+
+      _ : (π₁ ,p (g ∘⟨ C ⟩ π₂)) ≡ (Bif-homR ×Bif c g)
+      _ = refl
 
     ×β₁ : π₁ ∘⟨ C ⟩ (f ,p g) ≡ f
     ×β₁ {f = f}{g = g} = bp _ _ .univProp f g .fst .snd .fst
@@ -154,8 +193,10 @@ module _ (C : Category ℓ ℓ') where
       coinduction-natural (ues .universal) (f , g) h
 
     -- this has the benefit of always applying
-    ×-extensionality : π₁ ∘⟨ C ⟩ f ≡ π₁ ∘⟨ C ⟩ g → π₂ ∘⟨ C ⟩ f ≡ π₂ ∘⟨ C ⟩ g → f ≡ g
-    ×-extensionality p1 p2 = determined-by-elt (ues .universal) (cong₂ _,_ p1 p2)
+    ×-extensionality : π₁ ∘⟨ C ⟩ f ≡
+                       π₁ ∘⟨ C ⟩ g → π₂ ∘⟨ C ⟩ f ≡ π₂ ∘⟨ C ⟩ g → f ≡ g
+    ×-extensionality p1 p2 =
+      determined-by-elt (ues .universal) (cong₂ _,_ p1 p2)
 
     module _ (Γ : C .ob) where
       module PWN = ProdsWithNotation (bp Γ)

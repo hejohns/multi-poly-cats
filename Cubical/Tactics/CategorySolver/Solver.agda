@@ -28,7 +28,7 @@ module Eval (𝓒 : Category ℓ ℓ') where
   -- Semantics in 𝓟o 𝓒, interpreting fun symbols using Yoneda
   module YoSem = Semantics 𝓟 (𝓘 ∘Interp η)
   ⟦_⟧yo = YoSem.sem .F-hom
-  
+
   -- | Evaluate by taking the semantics in 𝓟 𝓒 and
   -- | use the Yoneda lemma to extract a morphism in 𝓒.
   eval : ∀ {A B} → FreeCat [ A , B ] → _
@@ -43,7 +43,8 @@ module Eval (𝓒 : Category ℓ ℓ') where
         → ⟦ e₁ ⟧c ≡ ⟦ e₂ ⟧c
   solve {A}{B} e₁ e₂ p = cong ⟦_⟧c (isFaithfulPseudoYoneda _ _ _ _ lem) where
     lem : 𝓘 ⟪ e₁ ⟫ ≡ 𝓘 ⟪ e₂ ⟫
-    lem = transport (λ i → Yo-YoSem-agree (~ i) ⟪ e₁ ⟫ ≡ Yo-YoSem-agree (~ i) ⟪ e₂ ⟫) p
+    lem = transport
+        (λ i → Yo-YoSem-agree (~ i) ⟪ e₁ ⟫ ≡ Yo-YoSem-agree (~ i) ⟪ e₂ ⟫) p
 
 solve : (𝓒 : Category ℓ ℓ')
       → {A B : 𝓒 .ob}
