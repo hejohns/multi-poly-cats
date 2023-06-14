@@ -51,10 +51,10 @@ module _ (Vertices : Type ℓ) where
     BinCartCat ._×_ = _×ₑ_
     BinCartCat .π₁ = πₑ₁
     BinCartCat .π₂ = πₑ₂
-    BinCartCat ._×→_ = _×→ₑ_
+    BinCartCat .⟨_,_⟩ = _×→ₑ_
     BinCartCat .β₁ = βₑ₁
     BinCartCat .β₂ = βₑ₂
-    BinCartCat .×→η = ×→ₑη
+    BinCartCat .×η = ×→ₑη
     BinCartCat .⊤ = 1ₑ
     BinCartCat .! = !ₑ
     BinCartCat .!η = !ₑη
@@ -62,3 +62,4 @@ module _ (Vertices : Type ℓ) where
       open import Cubical.Categories.Constructions.Power
       open import Cubical.Categories.Instances.Sets
       --𝓟 = PowerCategory (Category.ob 𝓒) (SET (ℓ-max ℓ ℓ'))
+      product-solver = BinCartCat
