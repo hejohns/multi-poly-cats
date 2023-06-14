@@ -1,94 +1,10 @@
 {-# OPTIONS --safe #-}
 module Cubical.Tactics.ProductSolver.Solver where
 
-module _ where
-  open import Cubical.Foundations.Prelude
-  open import Cubical.Categories.Category.Base
-  open import Cubical.Data.Graph.Base
-  private variable ℓ̬ ℓₑ : Level
-  private variable ℓₒ ℓₕ : Level
-  -- TODO: names tbd
-  open Cubical.Categories.Category.Base.Category
-  record CartesianCategory ℓₒ ℓₕ : Type (ℓ-suc (ℓ-max ℓₒ ℓₕ)) where
-      field
-          cat : Category ℓₒ ℓₕ
-          _,,_ : (A B : ob cat) → ob cat -- binary product
-          ⊤ : ob cat -- terminal object
-          π₁ : {A B : ob cat} → cat [ A ,, B , A ] -- projections
-          π₂ : {A B : ob cat} → cat [ A ,, B , B ]
-          [_,,_] : {A B D : ob cat} → cat [ D , A ] → cat [ D , B ] → cat [ D , A ,, B ] -- pairing (ie existence of morphism into terminal cone)
-          β₁ : {A B D : ob cat}{f : cat [ D , A ]}{g : cat [ D , B ]} → ([ f ,, g ] ⋆⟨ cat ⟩ π₁) ≡ f -- commuting conditions
-          β₂ : {A B D : ob cat}{f : cat [ D , A ]}{g : cat [ D , B ]} → ([ f ,, g ]) ⋆⟨ cat ⟩ π₂ ≡ g
-          ηₚ : {A B D : ob cat}{f : cat [ D , (A ,, B) ]} → [ (f ⋆⟨ cat ⟩ π₁) ,, (f ⋆⟨ cat ⟩ π₂) ] ≡ f -- ie uniqueness of morphism into terminal cone
-          ! : {A : ob cat} → cat [ A , ⊤ ] -- existence
-          η₁ : {A : ob cat}(f : cat [ A , ⊤ ]) → f ≡ ! -- uniqueness
-  open import Cubical.Categories.Functor.Base
-  open CartesianCategory hiding (η,⊤)
-  pairₒ : (𝓒 : CartesianCategory ℓₒ ℓₕ)(A B : ob (cat 𝓒)) → ob (cat 𝓒)
-  pairₒ = CartesianCategory._,,_
-  syntax pairₒ C A B = A ,,⟨ C ⟩ B
-  -- record CartesianFunctor ? where
-  --     field
-  --         functor : Functor 𝓒 𝓓
-  --         {𝓒 𝓓 : CartesianCategory ℓₒ ℓₕ}{F : Functor (cat 𝓒) (cat 𝓓)}(A B : ob (cat 𝓒)) → F ⟅ A ,,⟨ 𝓒 ⟩ B ⟆ ≡ (F ⟅ A ⟆ ,,⟨ 𝓓 ⟩ (F ⟅ B ⟆))
-  -- CartesianFunctor = {!!}
-  module _ (G : Graph ℓ̬ ℓₑ) where
-      -- data of the FreeCartesianCategory
-      data Objects : Type ℓ̬ where
-          -- Category
-          ↑_ : (A : Node G) → Objects -- include the generators
-          isSetObjects : isSet Objects
-          -- CartesianCategory
-          _,_ : (A B : Objects) → Objects -- binary product
-          symm : {A B : Objects} → (A , B) ≡ (B , A)
-          assoc : {A B C : Objects} → (A , (B , C)) ≡ ((A , B) , C)
-          ⊤ₒ : Objects -- freely throw in a terminal objcet
-          idL : {A : Objects} → (⊤ₒ , A) ≡ A
-      data Morphisms : Objects → Objects → Type (ℓ-max ℓ̬ ℓₑ) where
-          -- Category
-          ↑_ : {A B : Node G} → (f : Edge G A B) → Morphisms (↑ A) (↑ B)
-          idₑ : {A : Objects} → Morphisms A A
-          _⋆ₑ_ : {A B C : Objects} → Morphisms A B → Morphisms B C → Morphisms A C
-          ⋆ₑIdL : {A B : Objects} (e : Morphisms A B) → idₑ ⋆ₑ e ≡ e
-          ⋆ₑIdR : {A B : Objects} (e : Morphisms A B) → e ⋆ₑ idₑ ≡ e
-          ⋆ₑAssoc : {A B C D : Objects} (e : Morphisms A B)(f : Morphisms B C)(g : Morphisms C D) → (e ⋆ₑ f) ⋆ₑ g ≡ e ⋆ₑ (f ⋆ₑ g)
-          isSetMorphisms : {A B : Objects} → isSet (Morphisms A B)
-          -- CartesianCategory
-          πₑ₁ : {A B : Objects} → Morphisms (A , B) A
-          πₑ₂ : {A B : Objects} → Morphisms (A , B) B
-          [_,_] : {A B D : Objects} → Morphisms D A → Morphisms D B → Morphisms D (A , B)
-          βₑ₁ : {A B D : Objects}{f : Morphisms D A}{g : Morphisms D B} → ([ f , g ]) ⋆ₑ πₑ₁ ≡ f
-          βₑ₂ : {A B D : Objects}{f : Morphisms D A}{g : Morphisms D B} → ([ f , g ]) ⋆ₑ πₑ₂ ≡ g
-          ηₑ : {A B D : Objects}{f : Morphisms D (A , B)} → [ (f ⋆ₑ πₑ₁) , (f ⋆ₑ πₑ₂) ] ≡ f
-          !ₑ : {A : Objects} → Morphisms A ⊤ₒ
-          ηₑ₁ : {A : Objects}(f : Morphisms A ⊤ₒ) → f ≡ !ₑ
-      FreeCartesianCat : CartesianCategory ℓ̬ (ℓ-max ℓ̬ ℓₑ)
-      FreeCartesianCat = record
-                          { cat = record
-                              { ob = Objects
-                              ; Hom[_,_] = Morphisms
-                              ; id = idₑ
-                              ; _⋆_ = _⋆ₑ_
-                              ; ⋆IdL = ⋆ₑIdL
-                              ; ⋆IdR = ⋆ₑIdR
-                              ; ⋆Assoc = ⋆ₑAssoc
-                              ; isSetHom = isSetMorphisms
-                              }
-                          ; _,,_ = _,_
-                          ; ⊤ = ⊤ₒ
-                          ; π₁ = πₑ₁
-                          ; π₂ = πₑ₂
-                          ; [_,,_] = [_,_]
-                          ; β₁ = βₑ₁
-                          ; β₂ = βₑ₂
-                          ; ηₚ = ηₑ
-                          ; ! = !ₑ
-                          ; η₁ = ηₑ₁
-                          }
-      open import Cubical.Categories.Constructions.Free.UnderlyingGraph
-      η : Interp G (cat FreeCartesianCat)
-      η = record { _$g_ = λ x → ↑ x ; _<$g>_ = ↑_ }
-      module Semantics (𝓒 : CartesianCategory ℓₒ ℓₕ)(𝑖 : GraphHom G (Ugr (cat 𝓒))) where
+--      open import Cubical.Categories.Constructions.Free.UnderlyingGraph
+--      η : Interp G (cat FreeCartesianCat)
+--      η = record { _$g_ = λ x → ↑ x ; _<$g>_ = ↑_ }
+--      module Semantics (𝓒 : CartesianCategory ℓₒ ℓₕ)(𝑖 : GraphHom G (Ugr (cat 𝓒))) where
 open import Cubical.Foundations.Prelude
 open import Cubical.Categories.Category
 private variable
@@ -98,19 +14,51 @@ module _ (Vertices : Type ℓ) where
     ↑ : Vertices → ProdType
     1ₑ : ProdType
     _×ₑ_ : ProdType → ProdType → ProdType
-  module _ (edges : ProdType → ProdType → Type ℓ') where
+  module _ (edges[_,_] : ProdType → ProdType → Type ℓ') where
     private variable
       Γ Δ Δ₁ Δ₂ : ProdType
-    data Exp[_,_] : ProdType → ProdType → Type _ where
-        ↑ : edges Γ Δ → Exp[ Γ , Δ ]
-        ! : Exp[ Γ , 1ₑ ]
-        !-η : (f : Exp[ Γ , 1ₑ ]) → f ≡ !
-        π₁ : Exp[ (Γ ×ₑ Δ) , Γ ]
-        π₂ : Exp[ (Γ ×ₑ Δ) , Δ ]
-        _,_ : Exp[ Γ , Δ₁ ] → Exp[ Γ , Δ₂ ] → Exp[ Γ , (Δ₁ ×ₑ Δ₂) ]
-    open Cubical.Categories.Category.Category
-    foobar : Category _ _
-    foobar .ob = ProdType
-    foobar .Hom[_,_] = Exp[_,_]
-    foobar .id = {!!} 
-module Eval (𝓒 : Category ℓ ℓ') where
+    data Exp[_,_] : ProdType → ProdType → Type (ℓ-suc (ℓ-max ℓ ℓ')) where
+      ↑ : edges[ Γ , Δ ] → Exp[ Γ , Δ ]
+      !ₑ : Exp[ Γ , 1ₑ ]
+      !ₑη : {f : Exp[ Γ , 1ₑ ]} → f ≡ !ₑ
+      πₑ₁ : Exp[ (Γ ×ₑ Δ) , Γ ]
+      πₑ₂ : Exp[ (Γ ×ₑ Δ) , Δ ]
+      _×→ₑ_ : Exp[ Γ , Δ₁ ] → Exp[ Γ , Δ₂ ] → Exp[ Γ , (Δ₁ ×ₑ Δ₂) ]
+      _⋆ₑ_ : Exp[ Γ , Δ₁ ] → Exp[ Δ₁ , Δ₂ ] → Exp[ Γ , Δ₂ ]
+      βₑ₁ : {f : Exp[ Γ , Δ₁ ]}{g : Exp[ Γ , Δ₂ ]} → (f ×→ₑ g) ⋆ₑ πₑ₁ ≡ f
+      βₑ₂ : {f : Exp[ Γ , Δ₁ ]}{g : Exp[ Γ , Δ₂ ]} → (f ×→ₑ g) ⋆ₑ πₑ₂ ≡ g
+      ×→ₑη : {f : Exp[ Γ , Δ₁ ×ₑ Δ₂ ]} → ((f ⋆ₑ πₑ₁) ×→ₑ (f ⋆ₑ πₑ₂)) ≡ f
+      -- the rest of the Category data
+      idₑ : Exp[ Γ , Γ ]
+      ⋆ₑIdL : (f : Exp[ Γ , Δ ]) → idₑ ⋆ₑ f ≡ f
+      ⋆ₑIdR : (f : Exp[ Γ , Δ ]) → f ⋆ₑ idₑ ≡ f
+      ⋆ₑAssoc : (f : Exp[ Γ , Δ₁ ])(g : Exp[ Δ₁ , Δ₂ ])(h : Exp[ Δ₂ , Δ ]) → (f ⋆ₑ g) ⋆ₑ h ≡ f ⋆ₑ (g ⋆ₑ h)
+      isSetExp : isSet (Exp[ Γ , Δ ])
+    open Category
+    open import Cubical.Categories.CartesianCategory.BinaryCartesianCategory
+    open BinaryCartesianCategory
+    Cat : Category _ _
+    Cat .ob = ProdType
+    Cat .Hom[_,_] = Exp[_,_]
+    Cat .id = idₑ
+    Cat ._⋆_ = _⋆ₑ_
+    Cat .⋆IdL = ⋆ₑIdL
+    Cat .⋆IdR = ⋆ₑIdR
+    Cat .⋆Assoc = ⋆ₑAssoc
+    Cat .isSetHom = isSetExp
+    BinCartCat : BinaryCartesianCategory _ _
+    BinCartCat .cat = Cat
+    BinCartCat ._×_ = _×ₑ_
+    BinCartCat .π₁ = πₑ₁
+    BinCartCat .π₂ = πₑ₂
+    BinCartCat ._×→_ = _×→ₑ_
+    BinCartCat .β₁ = βₑ₁
+    BinCartCat .β₂ = βₑ₂
+    BinCartCat .×→η = ×→ₑη
+    BinCartCat .⊤ = 1ₑ
+    BinCartCat .! = !ₑ
+    BinCartCat .!η = !ₑη
+    module Eval where
+      open import Cubical.Categories.Constructions.Power
+      open import Cubical.Categories.Instances.Sets
+      --𝓟 = PowerCategory (Category.ob 𝓒) (SET (ℓ-max ℓ ℓ'))
