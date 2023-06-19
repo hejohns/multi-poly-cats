@@ -63,3 +63,14 @@ module _ (Vertices : Type ℓ) where
       open import Cubical.Categories.Instances.Sets
       --𝓟 = PowerCategory (Category.ob 𝓒) (SET (ℓ-max ℓ ℓ'))
       product-solver = BinCartCat
+-- NOTE: for development
+open import Agda.Builtin.Reflection hiding (Type)
+open import Cubical.Reflection.Base
+open import Cubical.Data.List
+open import Cubical.Categories.CartesianCategory.BinaryCartesianCategory
+product-solver-debug : BinaryCartesianCategory ℓ ℓ'
+                     → Term
+                     → Term
+                     → Term
+                     → Term
+product-solver-debug bcc lhs rhs _ = con (quote Category.⋆IdR) ([])
