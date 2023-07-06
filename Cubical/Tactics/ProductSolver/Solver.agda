@@ -46,3 +46,23 @@ module Eval (𝓒 : BinaryCartesianCategory ℓ ℓ') where
   reinterpret .functor .F-seq _ _ = refl
   reinterpret .respects-⊤ = refl
   reinterpret .respects-× = refl
+  〚_〛taut : ∀{A B} → Expr .cat [ A , B ] → (𝓒 .cat) [ reinterpret .functor .F-ob A , reinterpret .functor .F-ob B ]
+  〚_〛taut = reinterpret .functor .F-hom
+  open import Cubical.Categories.Constructions.Power
+  open import Cubical.Categories.Instances.Sets
+  𝓟 = PowerCategory (Expr .cat .ob) (SET (ℓ-max ℓ ℓ'))
+  𝓘 : Functor (Expr .cat) 𝓟
+  𝓘 = PseudoYoneda {C = Expr .cat}
+  〚_〛yo : ∀{A B} → Expr .cat [ A , B ] → 𝓟 [ (λ x → (Expr .cat [ A , x ]) , Expr .cat .isSetHom) , (λ y → (Expr .cat [ B , y ]) , Expr .cat .isSetHom) ]
+  〚 ↑ₑ (coalece {C} {D} e) 〛yo = {!𝓘 .F-hom {↑̬ C} {↑̬ D}!}
+  〚 idₑ 〛yo = 𝓟 .id
+  〚 e ⋆ₑ e' 〛yo = 〚 e 〛yo ⋆⟨ 𝓟 ⟩ 〚 e' 〛yo
+  〚 ⋆ₑIdL e i 〛yo = 𝓟 .⋆IdL 〚 e 〛yo i
+  〚 ⋆ₑIdR e i 〛yo = 𝓟 .⋆IdR 〚 e 〛yo i
+  〚 ⋆ₑAssoc e e' e'' i 〛yo = 𝓟 .⋆Assoc 〚 e 〛yo 〚 e' 〛yo 〚 e'' 〛yo i
+  eval : ∀{A B} → Expr .cat [ A , B ] → _
+  eval e = 〚 e 〛yo
+  Yo-YoSem-agree : 𝓘 ≡ {!!}
+  Yo-YoSem-agree = {!!}
+  solve : ∀{A B}(e e' : Expr .cat [ A , B ]) → eval e ≡ eval e' → reinterpret .functor .F-hom e ≡ reinterpret .functor .F-hom e'
+  solve e e' eq = {!!}
