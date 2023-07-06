@@ -87,7 +87,6 @@ module _ (Q : Quiver ℓg ℓg') where
     PresentedCat .⋆Assoc = elimProp3 (λ _ _ _ → squash/ _ _) (λ e f g →
       eq/ _ _ (⋆ₑAssoc e f g))
     PresentedCat .isSetHom = squash/
-    foobar = {!/!}
 
     FreeToPresented : Functor FQ PresentedCat
     FreeToPresented .F-ob x = x

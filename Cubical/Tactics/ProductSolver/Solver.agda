@@ -1,76 +1,49 @@
 {-# OPTIONS --safe #-}
 module Cubical.Tactics.ProductSolver.Solver where
 
---      open import Cubical.Categories.Constructions.Free.UnderlyingGraph
---      η : Interp G (cat FreeCartesianCat)
---      η = record { _$g_ = λ x → ↑ x ; _<$g>_ = ↑_ }
---      module Semantics (𝓒 : CartesianCategory ℓₒ ℓₕ)(𝑖 : GraphHom G (Ugr (cat 𝓒))) where
 open import Cubical.Foundations.Prelude
 open import Cubical.Categories.Category
+
 private variable
   ℓ ℓ' : Level
-module _ (Vertices : Type ℓ) where
-  data ProdType : Type ℓ where
-    ↑ : Vertices → ProdType
-    1ₑ : ProdType
-    _×ₑ_ : ProdType → ProdType → ProdType
-  module _ (edges[_,_] : ProdType → ProdType → Type ℓ') where
-    private variable
-      Γ Δ Δ₁ Δ₂ : ProdType
-    data Exp[_,_] : ProdType → ProdType → Type (ℓ-suc (ℓ-max ℓ ℓ')) where
-      ↑ : edges[ Γ , Δ ] → Exp[ Γ , Δ ]
-      !ₑ : Exp[ Γ , 1ₑ ]
-      !ₑη : {f : Exp[ Γ , 1ₑ ]} → f ≡ !ₑ
-      πₑ₁ : Exp[ (Γ ×ₑ Δ) , Γ ]
-      πₑ₂ : Exp[ (Γ ×ₑ Δ) , Δ ]
-      _×→ₑ_ : Exp[ Γ , Δ₁ ] → Exp[ Γ , Δ₂ ] → Exp[ Γ , (Δ₁ ×ₑ Δ₂) ]
-      _⋆ₑ_ : Exp[ Γ , Δ₁ ] → Exp[ Δ₁ , Δ₂ ] → Exp[ Γ , Δ₂ ]
-      βₑ₁ : {f : Exp[ Γ , Δ₁ ]}{g : Exp[ Γ , Δ₂ ]} → (f ×→ₑ g) ⋆ₑ πₑ₁ ≡ f
-      βₑ₂ : {f : Exp[ Γ , Δ₁ ]}{g : Exp[ Γ , Δ₂ ]} → (f ×→ₑ g) ⋆ₑ πₑ₂ ≡ g
-      ×→ₑη : {f : Exp[ Γ , Δ₁ ×ₑ Δ₂ ]} → ((f ⋆ₑ πₑ₁) ×→ₑ (f ⋆ₑ πₑ₂)) ≡ f
-      -- the rest of the Category data
-      idₑ : Exp[ Γ , Γ ]
-      ⋆ₑIdL : (f : Exp[ Γ , Δ ]) → idₑ ⋆ₑ f ≡ f
-      ⋆ₑIdR : (f : Exp[ Γ , Δ ]) → f ⋆ₑ idₑ ≡ f
-      ⋆ₑAssoc : (f : Exp[ Γ , Δ₁ ])(g : Exp[ Δ₁ , Δ₂ ])(h : Exp[ Δ₂ , Δ ]) → (f ⋆ₑ g) ⋆ₑ h ≡ f ⋆ₑ (g ⋆ₑ h)
-      isSetExp : isSet (Exp[ Γ , Δ ])
-    open Category
-    open import Cubical.Categories.CartesianCategory.BinaryCartesianCategory
-    open BinaryCartesianCategory
-    Cat : Category _ _
-    Cat .ob = ProdType
-    Cat .Hom[_,_] = Exp[_,_]
-    Cat .id = idₑ
-    Cat ._⋆_ = _⋆ₑ_
-    Cat .⋆IdL = ⋆ₑIdL
-    Cat .⋆IdR = ⋆ₑIdR
-    Cat .⋆Assoc = ⋆ₑAssoc
-    Cat .isSetHom = isSetExp
-    BinCartCat : BinaryCartesianCategory _ _
-    BinCartCat .cat = Cat
-    BinCartCat ._×_ = _×ₑ_
-    BinCartCat .π₁ = πₑ₁
-    BinCartCat .π₂ = πₑ₂
-    BinCartCat .⟨_,_⟩ = _×→ₑ_
-    BinCartCat .β₁ = βₑ₁
-    BinCartCat .β₂ = βₑ₂
-    BinCartCat .×η = ×→ₑη
-    BinCartCat .⊤ = 1ₑ
-    BinCartCat .! = !ₑ
-    BinCartCat .!η = !ₑη
-    module Eval where
-      open import Cubical.Categories.Constructions.Power
-      open import Cubical.Categories.Instances.Sets
-      --𝓟 = PowerCategory (Category.ob 𝓒) (SET (ℓ-max ℓ ℓ'))
-      product-solver = BinCartCat
--- NOTE: for development
-open import Agda.Builtin.Reflection hiding (Type)
-open import Cubical.Reflection.Base
-open import Cubical.Data.List
-open import Cubical.Categories.CartesianCategory.BinaryCartesianCategory
-product-solver-debug : BinaryCartesianCategory ℓ ℓ'
-                     → Term
-                     → Term
-                     → Term
-                     → Term
-product-solver-debug bcc lhs rhs _ = con (quote Category.⋆IdR) ([])
+module _ (Vertex : Type ℓ) where
+  data ProdTypeExpr : Type ℓ where
+    ↑̬ : Vertex → ProdTypeExpr
+    _×̬_ : ProdTypeExpr → ProdTypeExpr → ProdTypeExpr
+    1̬ : ProdTypeExpr
+  module _ (Edge[_,_] : ProdTypeExpr → ProdTypeExpr → Type ℓ') where
+    open import Cubical.Categories.Constructions.Presented
+    open import Cubical.Categories.Constructions.Free.Category -- Quiver
+    open Quiver
+    --Cone : ProdTypeExpr → ProdTypeExpr → Type _
+    --Cone A B = Σ[ C ∈ ProdTypeExpr ] (Σ[ π₁ ∈ ])
+    data EdgeExpr[_,_] : ProdTypeExpr → ProdTypeExpr → Type (ℓ-suc (ℓ-max ℓ ℓ')) where
+      ↑ₑ : ∀{A B} → Edge[ A , B ] → EdgeExpr[ A , B ]
+      --↑ₑ' : Σ[ A ∈ ProdTypeExpr ] (Σ[ B ∈ ProdTypeExpr ] Edge[ A , B ]) → EdgeGenerator
+      πₑ₁ : ∀{A B} → EdgeExpr[ A ×̬ B , A ]
+      πₑ₂ : ∀{A B} → EdgeExpr[ A ×̬ B , B ]
+      _,ₑ_ : {A B C : ProdTypeExpr}(f : EdgeExpr[ C , A ])(g : EdgeExpr[ C , B ]) → EdgeExpr[ C , A ×̬ B ]
+      --_,ₑ_ : (A B : ProdTypeExpr)(C : Cone A B) → EdgeGenerator
+      !ₑ : ∀{A} → EdgeExpr[ 1̬ , A ]
+    data EdgeGenerator : Type (ℓ-suc (ℓ-max ℓ ℓ')) where
+      coalece : ∀{A B} → EdgeExpr[ A , B ] → EdgeGenerator
+    QuiverPresentation : Quiver _ _
+    QuiverPresentation .ob = ProdTypeExpr
+    QuiverPresentation .mor = EdgeGenerator
+    QuiverPresentation .dom (coalece {A} {B} f) = A
+    QuiverPresentation .cod (coalece {A} {B} f) = B
+
+    data Equation : Type (ℓ-suc (ℓ-max ℓ ℓ')) where
+      ×β₁ ×β₂ : ∀{A B C} → EdgeExpr[ C , A ] → EdgeExpr[ C , B ] → Equation
+      ×η : ∀{A B C} → EdgeExpr[ C , A ×̬ B ] → Equation
+      --×η : ∀{A B C} → (f : EdgeExpr[ C , A ])(g : EdgeExpr[ C , B ])(h : EdgeExpr[ C , A ×̬ B ]) → (h ⋆ π₂)→ Equation
+      !η : ∀{A} → EdgeExpr[ 1̬ , A ] → Equation
+      
+    blah : Category _ _
+    blah = PresentedCat QuiverPresentation (mkAx QuiverPresentation Equation flaah)
+      where
+      flaah : Equation → Σ[ A ∈ QuiverPresentation .ob ] (Σ[ B ∈ QuiverPresentation .ob ] _)
+      flaah (×β₁ {A} {B} {C} f g) = C , (A , (↑ (coalece (f ,ₑ g))) ⋆ₑ (↑ (coalece πₑ₁)) , ↑ (coalece f))
+      flaah (×β₂ {A} {B} {C} f g) = C , (B , (↑ (coalece (f ,ₑ g))) ⋆ₑ (↑ (coalece πₑ₂)) , ↑ (coalece g))
+      flaah (×η {A} {B} {C} f) = {!!} , ({!!} , {!!} , {!!})
+      flaah (!η {A} f) = {!!} , ({!!} , {!!} , {!!})
