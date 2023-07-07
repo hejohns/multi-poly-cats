@@ -1,14 +1,24 @@
 {-# OPTIONS --safe #-}
 module Cubical.Categories.Constructions.FreeCartesian.FreeCartesian where
 open import Cubical.Foundations.Prelude
-private variable ℓ ℓ' : Level
+private variable ℓ ℓ' ℓ'' : Level
 private variable ℓq ℓq' : Level
 private variable ℓc ℓc' : Level
+private variable ℓd ℓd' : Level
 open import Cubical.Categories.Category
 open Category
 open import Cubical.Categories.CartesianCategory.BinaryCartesianCategory
 open BinaryCartesianCategory
 -- generating data
+module _ where
+  private variable
+      A : Type ℓ
+      B : Type ℓ'
+      C : Type ℓ''
+      x x' y y' : A
+  -- this has to be defined already somewhere... right?
+  congS₂ : (f : A → B → C) → x ≡ x' → y ≡ y' → f x y ≡ f x' y'
+  congS₂ f p q i = f (p i) (q i)
 module Data where
   module _ (Vertex : Type ℓ) where
     data ProdTypeExpr : Type ℓ where
@@ -31,6 +41,19 @@ module Data where
     field
       I-ob : Q .vertex → 𝓒 .cat .ob 
       I-hom : (e : Q .edge) → 𝓒 .cat [ interpret-objects Q 𝓒 I-ob (Q .dom e) , interpret-objects Q 𝓒 I-ob (Q .cod e) ]
+  open Interp
+  open StrictCartesianFunctor
+  open import Cubical.Categories.Functor
+  -- TODO: this is terrible
+  interp-F-comm : (Q : PseudoQuiver ℓq ℓq')(A : _)(𝓒 : BinaryCartesianCategory ℓc ℓc')(𝓓 : BinaryCartesianCategory ℓd ℓd')(F : StrictCartesianFunctor 𝓒 𝓓)(ı : Interp Q 𝓒) → interpret-objects Q 𝓓 (λ x → F .functor ⟅ (ı .I-ob x) ⟆) A ≡ F .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) A ⟆
+  interp-F-comm Q (↑̬ B) 𝓒 𝓓 F ı = refl
+  --interp-F-comm Q (B ×̬ C) 𝓒 𝓓 F ı = sym (F .respects-× ∙ congS (λ x → x ×⟨ 𝓓 ⟩ _) (sym (interp-F-comm Q B 𝓒 𝓓 F ı)) ∙ congS (λ x → _ ×⟨ 𝓓 ⟩ x) (sym (interp-F-comm Q C 𝓒 𝓓 F ı)))
+  interp-F-comm Q (B ×̬ C) 𝓒 𝓓 F ı = sym (F .respects-× ∙ congS₂ (λ x y → x ×⟨ 𝓓 ⟩ y) (sym (interp-F-comm Q B 𝓒 𝓓 F ı)) (sym (interp-F-comm Q C 𝓒 𝓓 F ı)))
+  interp-F-comm Q ⊤̬ 𝓒 𝓓 F ı = sym (F .respects-⊤)
+  _∘I_ : {Q : PseudoQuiver ℓq ℓq'}{𝓒 : BinaryCartesianCategory ℓc ℓc'}{𝓓 : BinaryCartesianCategory ℓd ℓd'}(F : StrictCartesianFunctor 𝓒 𝓓)(ı : Interp Q 𝓒) → Interp Q 𝓓
+  (F ∘I ı) .I-ob A = F .functor ⟅ ı .I-ob A ⟆
+  --(F ∘I ı) .I-hom e = {!F .functor ⟪ ı .I-hom e ⟫!}
+  (_∘I_ {Q = Q} {𝓒 = 𝓒} {𝓓 = 𝓓} F ı) .I-hom e =  transport (congS₂ (λ x y → 𝓓 .cat [ x , y ]) (sym (interp-F-comm Q (Q .dom e) 𝓒 𝓓 F ı)) (sym (interp-F-comm Q (Q .cod e) 𝓒 𝓓 F ı))) (F .functor ⟪ ı .I-hom e ⟫) 
 open Data
 open PseudoQuiver
 module _ (Q : PseudoQuiver ℓq ℓq') where
@@ -71,13 +94,16 @@ module _ (Q : PseudoQuiver ℓq ℓq') where
   FreeCartesianCategory .×η = ×̬η
   FreeCartesianCategory .⊤η = ⊤̬η
   open Interp
-  lemma : (A : ProdTypeExpr') → interpret-objects Q FreeCartesianCategory ↑̬ A ≡ A
-  lemma (↑̬ B) = refl
-  lemma (B ×̬ C) = λ i → lemma B i ×̬ lemma C i
-  lemma ⊤̬  = refl
+  reinterp-trivial : (A : ProdTypeExpr') → interpret-objects Q FreeCartesianCategory ↑̬ A ≡ A
+  reinterp-trivial (↑̬ B) = refl
+  reinterp-trivial (B ×̬ C) i = reinterp-trivial B i ×̬ reinterp-trivial C i
+  reinterp-trivial ⊤̬  = refl
+  inside-EdgeExpr : ∀{A B} → EdgeExpr[ interpret-objects Q FreeCartesianCategory ↑̬ A , interpret-objects Q FreeCartesianCategory ↑̬ B ] ≡ EdgeExpr[ A , B ]
+  --inside-EdgeExpr {A} {B} = congS (λ x → EdgeExpr[ x , _ ]) (reinterp-trivial A) ∙ congS (λ x → EdgeExpr[ _ , x ]) (reinterp-trivial B)
+  inside-EdgeExpr {A} {B} = congS₂ (λ x y → EdgeExpr[ x , y ]) (reinterp-trivial A) (reinterp-trivial B)
   η : Interp Q FreeCartesianCategory
   η .I-ob = ↑̬
-  η .I-hom e = transport (congS (λ x → EdgeExpr[ x , Q .cod e ]) (sym (lemma (Q .dom e))) ∙ congS (λ x → EdgeExpr[ interpret-objects Q FreeCartesianCategory ↑̬  (Q .dom e) , x ]) (sym (lemma (Q .cod e)))) (↑ₑ e)
+  η .I-hom e = transport (sym inside-EdgeExpr) (↑ₑ e)
   -- EdgeExpr[ (Q .dom e) , (Q .cod e) ]
   -- ≡
   -- EdgeExpr[
@@ -87,3 +113,4 @@ module _ (Q : PseudoQuiver ℓq ℓq') where
   -- EdgeExpr[
   --       interpret-objects Q FreeCartesianCategory ↑̬ (Q .dom e) ,
   --       interpret-objects Q FreeCartesianCategory ↑̬ (Q .cod e) ]
+  module _ {𝓒 : BinaryCartesianCategory ℓc ℓc'}(F F' : StrictCartesianFunctor FreeCartesianCategory 𝓒) where

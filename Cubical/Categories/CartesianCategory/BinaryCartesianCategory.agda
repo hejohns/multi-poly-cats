@@ -22,10 +22,10 @@ pair-objects : (C : BinaryCartesianCategory ℓ ℓ') → _ → _ → _
 pair-objects A B = A × B
 syntax pair-objects C A B = A ×⟨ C ⟩ B
 
-private variable ℓ𝓒 ℓ𝓒' ℓ𝓓 ℓ𝓓' : Level
-module _ (𝓒 : BinaryCartesianCategory ℓ𝓒 ℓ𝓒')(𝓓 : BinaryCartesianCategory ℓ𝓓 ℓ𝓓') where
+private variable ℓc ℓc' ℓd ℓd' : Level
+module _ (𝓒 : BinaryCartesianCategory ℓc ℓc')(𝓓 : BinaryCartesianCategory ℓd ℓd') where
   open import Cubical.Categories.Functor
-  record StrictCartesianFunctor : Type (ℓ-max (ℓ-max ℓ𝓒 ℓ𝓒') (ℓ-max ℓ𝓓 ℓ𝓓')) where
+  record StrictCartesianFunctor : Type (ℓ-max (ℓ-max ℓc ℓc') (ℓ-max ℓd ℓd')) where
     field
       functor : Functor (𝓒 .cat) (𝓓 .cat)
       respects-⊤ : functor ⟅ 𝓒 .⊤ ⟆ ≡ 𝓓 .⊤
