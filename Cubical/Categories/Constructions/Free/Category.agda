@@ -115,7 +115,7 @@ module _ (Q : Quiver ℓg ℓg') where
           aoo : ∀ c → F ⟅ c ⟆ ≡ F' ⟅ c ⟆
           aoo = (λ c i → agree-on-η i .I-ob c)
 
-          aom-t : ∀ {c c'} (e : Exp c c') → Type _
+          aom-t : ∀ {c c'} (e : Exp c c') → Type ℓc'
           aom-t {c}{c'} e =
             PathP (λ i → 𝓒 [ aoo c i , aoo c' i ]) (F ⟪ e ⟫) (F' ⟪ e ⟫)
 

@@ -9,6 +9,8 @@ open import Cubical.Categories.Category
 open Category
 open import Cubical.Categories.CartesianCategory.BinaryCartesianCategory
 open BinaryCartesianCategory
+open StrictCartesianFunctor
+open import Cubical.Categories.Functor
 -- generating data
 module _ where
   private variable
@@ -42,13 +44,13 @@ module Data where
       I-ob : Q .vertex → 𝓒 .cat .ob 
       I-hom : (e : Q .edge) → 𝓒 .cat [ interpret-objects Q 𝓒 I-ob (Q .dom e) , interpret-objects Q 𝓒 I-ob (Q .cod e) ]
   open Interp
-  open StrictCartesianFunctor
-  open import Cubical.Categories.Functor
+  inside-× : (𝓒 : BinaryCartesianCategory ℓc ℓc') → ∀{A A' B B'} → A ≡ A' → B ≡ B' → A ×⟨ 𝓒 ⟩ B ≡ A' ×⟨ 𝓒 ⟩ B'
+  inside-× 𝓒 = congS₂ (λ x y → x ×⟨ 𝓒 ⟩ y)
   -- TODO: this is terrible
   interp-F-comm : (Q : PseudoQuiver ℓq ℓq')(A : _)(𝓒 : BinaryCartesianCategory ℓc ℓc')(𝓓 : BinaryCartesianCategory ℓd ℓd')(F : StrictCartesianFunctor 𝓒 𝓓)(ı : Interp Q 𝓒) → interpret-objects Q 𝓓 (λ x → F .functor ⟅ (ı .I-ob x) ⟆) A ≡ F .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) A ⟆
   interp-F-comm Q (↑̬ B) 𝓒 𝓓 F ı = refl
   --interp-F-comm Q (B ×̬ C) 𝓒 𝓓 F ı = sym (F .respects-× ∙ congS (λ x → x ×⟨ 𝓓 ⟩ _) (sym (interp-F-comm Q B 𝓒 𝓓 F ı)) ∙ congS (λ x → _ ×⟨ 𝓓 ⟩ x) (sym (interp-F-comm Q C 𝓒 𝓓 F ı)))
-  interp-F-comm Q (B ×̬ C) 𝓒 𝓓 F ı = sym (F .respects-× ∙ congS₂ (λ x y → x ×⟨ 𝓓 ⟩ y) (sym (interp-F-comm Q B 𝓒 𝓓 F ı)) (sym (interp-F-comm Q C 𝓒 𝓓 F ı)))
+  interp-F-comm Q (B ×̬ C) 𝓒 𝓓 F ı = sym (F .respects-× ∙ inside-× 𝓓 (sym (interp-F-comm Q B 𝓒 𝓓 F ı)) (sym (interp-F-comm Q C 𝓒 𝓓 F ı)))
   interp-F-comm Q ⊤̬ 𝓒 𝓓 F ı = sym (F .respects-⊤)
   _∘I_ : {Q : PseudoQuiver ℓq ℓq'}{𝓒 : BinaryCartesianCategory ℓc ℓc'}{𝓓 : BinaryCartesianCategory ℓd ℓd'}(F : StrictCartesianFunctor 𝓒 𝓓)(ı : Interp Q 𝓒) → Interp Q 𝓓
   (F ∘I ı) .I-ob A = F .functor ⟅ ı .I-ob A ⟆
@@ -57,9 +59,10 @@ module Data where
 open Data
 open PseudoQuiver
 module _ (Q : PseudoQuiver ℓq ℓq') where
-  ProdTypeExpr' = ProdTypeExpr (Q .vertex)
+  open import Cubical.HITs.SetTruncation
+  ProdTypeExpr' = ∥ ProdTypeExpr (Q .vertex) ∥₂
   data EdgeExpr[_,_] : ProdTypeExpr' → ProdTypeExpr' → Type (ℓ-max ℓq ℓq') where
-    ↑ₑ : (e : Q .edge) → EdgeExpr[ Q .dom e , Q .cod e ]
+    ↑ₑ : (e : Q .edge) → EdgeExpr[ ∣ Q .dom e ∣₂ , ∣ Q .cod e ∣₂ ]
     idₑ : ∀{A} → EdgeExpr[ A , A ]
     _⋆ₑ_ : ∀{A B C} → EdgeExpr[ A , B ] → EdgeExpr[ B , C ] → EdgeExpr[ A , C ]
     ⋆ₑIdL : ∀{A B}(f : EdgeExpr[ A , B ]) → idₑ ⋆ₑ f ≡ f
@@ -93,6 +96,7 @@ module _ (Q : PseudoQuiver ℓq ℓq') where
   FreeCartesianCategory .×β₂ = ×̬β₂
   FreeCartesianCategory .×η = ×̬η
   FreeCartesianCategory .⊤η = ⊤̬η
+  FreeCartesianCategory .isSetOb = {!!}
   open Interp
   reinterp-trivial : (A : ProdTypeExpr') → interpret-objects Q FreeCartesianCategory ↑̬ A ≡ A
   reinterp-trivial (↑̬ B) = refl
@@ -114,3 +118,14 @@ module _ (Q : PseudoQuiver ℓq ℓq') where
   --       interpret-objects Q FreeCartesianCategory ↑̬ (Q .dom e) ,
   --       interpret-objects Q FreeCartesianCategory ↑̬ (Q .cod e) ]
   module _ {𝓒 : BinaryCartesianCategory ℓc ℓc'}(F F' : StrictCartesianFunctor FreeCartesianCategory 𝓒) where
+    module _ (agree-on-η : F ∘I η ≡ F' ∘I η) where
+      aoo : ∀ c → F .functor ⟅ c ⟆ ≡ F' .functor ⟅ c ⟆
+      aoo (↑̬ A) i = agree-on-η i .I-ob A
+      aoo (A ×̬ B) = F .respects-× ∙ inside-× 𝓒 (aoo A) (aoo B) ∙ sym (F' .respects-×)
+      aoo ⊤̬ = F .respects-⊤ ∙ sym (F' .respects-⊤)
+      ind' : F .functor ≡ F' .functor
+      ind' = Functor≡ aoo {!!}
+      ind : F ≡ F'
+      ind i .functor = ind' i
+      ind i .respects-× = {!!}
+      ind i .respects-⊤ = isProp→PathP (λ j → 𝓒 .isSetOb (ind' j ⟅ ⊤̬ ⟆) (𝓒 .⊤)) (F .respects-⊤) (F' .respects-⊤) i

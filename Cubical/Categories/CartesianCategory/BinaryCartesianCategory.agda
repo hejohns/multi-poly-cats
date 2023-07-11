@@ -17,6 +17,9 @@ record BinaryCartesianCategory ℓ ℓ' : Type (ℓ-suc (ℓ-max ℓ ℓ')) wher
     ×β₂ : ∀{A B C}{f : cat [ C , A ]}{g : cat [ C , B ]} → ⟨ f , g ⟩ ⋆⟨ cat ⟩ π₂ ≡ g
     ×η : ∀{A B C}{f : cat [ C , A × B ]} → ⟨ f ⋆⟨ cat ⟩ π₁ , f ⋆⟨ cat ⟩ π₂ ⟩ ≡ f
     ⊤η : ∀{A}{f : cat [ A , ⊤ ] } → f ≡ !
+    -- TODO: I guess we need to require that cat has a set of objects?
+    -- for equality of StrictCartesianFunctor s
+    isSetOb : isSet (cat .ob)
 open BinaryCartesianCategory
 pair-objects : (C : BinaryCartesianCategory ℓ ℓ') → _ → _ → _
 pair-objects A B = A × B
@@ -28,5 +31,8 @@ module _ (𝓒 : BinaryCartesianCategory ℓc ℓc')(𝓓 : BinaryCartesianCateg
   record StrictCartesianFunctor : Type (ℓ-max (ℓ-max ℓc ℓc') (ℓ-max ℓd ℓd')) where
     field
       functor : Functor (𝓒 .cat) (𝓓 .cat)
+      respects-× : (∀{A B} → functor ⟅ A ×⟨ 𝓒 ⟩ B ⟆ ≡ functor ⟅ A ⟆ ×⟨ 𝓓 ⟩ functor ⟅ B ⟆)
       respects-⊤ : functor ⟅ 𝓒 .⊤ ⟆ ≡ 𝓓 .⊤
-      respects-× : ∀{A B} → functor ⟅ A ×⟨ 𝓒 ⟩ B ⟆ ≡ functor ⟅ A ⟆ ×⟨ 𝓓 ⟩ functor ⟅ B ⟆
+      --open import Cubical.HITs.PropositionalTruncation
+      --respects-× : ∥ (∀{A B} → functor ⟅ A ×⟨ 𝓒 ⟩ B ⟆ ≡ functor ⟅ A ⟆ ×⟨ 𝓓 ⟩ functor ⟅ B ⟆) ∥₁
+      --respects-⊤ : ∥ functor ⟅ 𝓒 .⊤ ⟆ ≡ 𝓓 .⊤ ∥₁
