@@ -18,6 +18,7 @@ RightAdjoint : (C : Category ℓC ℓC')
                (F : Functor C D) → Type _
 RightAdjoint C D F  = ParamUnivElt D C (Functor→Profo-* C D F)
 
+
 RightAdjointAt : (C : Category ℓC ℓC')
                  (D : Category ℓD ℓD')
                  (F : Functor C D)
