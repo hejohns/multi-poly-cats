@@ -52,18 +52,34 @@ module Data where -- generating data
   inside-× : (𝓒 : BinaryCartesianCategory ℓc ℓc') → ∀{A A' B B'} → A ≡ A' → B ≡ B' → A ×⟨ 𝓒 ⟩ B ≡ A' ×⟨ 𝓒 ⟩ B'
   inside-× 𝓒 = congS₂ (λ x y → x ×⟨ 𝓒 ⟩ y)
   -- TODO: this is terrible
-  interp-F-comm : (Q : ProductQuiver ℓq ℓq')(A : _)(𝓒 : BinaryCartesianCategory ℓc ℓc')(𝓓 : BinaryCartesianCategory ℓd ℓd')(F : StrictCartesianFunctor 𝓒 𝓓)(ı : Interp Q 𝓒) → interpret-objects Q 𝓓 (λ x → F .functor ⟅ (ı .I-ob x) ⟆) A ≡ F .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) A ⟆
-  interp-F-comm Q (↑̬ B) 𝓒 𝓓 F ı = refl
-  --interp-F-comm Q (B ×̬ C) 𝓒 𝓓 F ı = sym (F .respects-× ∙ congS (λ x → x ×⟨ 𝓓 ⟩ _) (sym (interp-F-comm Q B 𝓒 𝓓 F ı)) ∙ congS (λ x → _ ×⟨ 𝓓 ⟩ x) (sym (interp-F-comm Q C 𝓒 𝓓 F ı)))
-  interp-F-comm Q (B ×̬ C) 𝓒 𝓓 F ı = sym (F .preserves-× ∙ inside-× 𝓓 (sym (interp-F-comm Q B 𝓒 𝓓 F ı)) (sym (interp-F-comm Q C 𝓒 𝓓 F ı)))
-  interp-F-comm Q ⊤̬ 𝓒 𝓓 F ı = sym (F .preserves-⊤)
-  -- extend interpretation along functor
-  _∘I_ : {Q : ProductQuiver ℓq ℓq'}{𝓒 : BinaryCartesianCategory ℓc ℓc'}{𝓓 : BinaryCartesianCategory ℓd ℓd'}(F : StrictCartesianFunctor 𝓒 𝓓)(ı : Interp Q 𝓒) → Interp Q 𝓓
-  (F ∘I ı) .I-ob A = F .functor ⟅ ı .I-ob A ⟆
-  --(F ∘I ı) .I-hom e = {!F .functor ⟪ ı .I-hom e ⟫!}
-  (_∘I_ {Q = Q} {𝓒 = 𝓒} {𝓓 = 𝓓} F ı) .I-hom e =  transport (congS₂ (λ x y → 𝓓 .cat [ x , y ]) (sym (interp-F-comm Q (Q .dom e) 𝓒 𝓓 F ı)) (sym (interp-F-comm Q (Q .cod e) 𝓒 𝓓 F ı))) (F .functor ⟪ ı .I-hom e ⟫) 
-  IHom : {Q : ProductQuiver ℓq ℓq'}{𝓒 : BinaryCartesianCategory ℓc ℓc'}{𝓓 : BinaryCartesianCategory ℓd ℓd'}(F G : StrictCartesianFunctor 𝓒 𝓓)(ı : Interp Q 𝓒) → (p : F ∘I ı ≡ G ∘I ı) → (e : Q .edge) → PathP (λ i → 𝓓 .cat [ transport (interp-F-comm Q {!Q .dom e!} 𝓒 {!𝓓!} {!F!} ı) (interpret-objects Q 𝓓 (p i .I-ob) (Q .dom e)) , {!!} ]) (F .functor ⟪ ı .I-hom e ⟫) (G .functor ⟪ ı .I-hom e ⟫)
-  IHom = {!!}
+  module _ {Q : ProductQuiver ℓq ℓq'}{𝓒 : BinaryCartesianCategory ℓc ℓc'}{𝓓 : BinaryCartesianCategory ℓd ℓd'}(F : StrictCartesianFunctor 𝓒 𝓓)(ı : Interp Q 𝓒) where
+    interp-F-comm : (A : Q .vertex) → interpret-objects Q 𝓓 (λ x → F .functor ⟅ (ı .I-ob x) ⟆) A ≡ F .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) A ⟆
+    interp-F-comm Q (↑̬ B) 𝓒 𝓓 F ı = refl
+    --interp-F-comm Q (B ×̬ C) 𝓒 𝓓 F ı = sym (F .respects-× ∙ congS (λ x → x ×⟨ 𝓓 ⟩ _) (sym (interp-F-comm Q B 𝓒 𝓓 F ı)) ∙ congS (λ x → _ ×⟨ 𝓓 ⟩ x) (sym (interp-F-comm Q C 𝓒 𝓓 F ı)))
+    interp-F-comm Q (B ×̬ C) 𝓒 𝓓 F ı = sym (F .preserves-× ∙ inside-× 𝓓 (sym (interp-F-comm Q B 𝓒 𝓓 F ı)) (sym (interp-F-comm Q C 𝓒 𝓓 F ı)))
+    interp-F-comm Q ⊤̬ 𝓒 𝓓 F ı = sym (F .preserves-⊤)
+    -- extend interpretation along functor
+    _∘I_ : Interp Q 𝓓
+    (F ∘I ı) .I-ob A = F .functor ⟅ ı .I-ob A ⟆
+    --(F ∘I ı) .I-hom e = {!F .functor ⟪ ı .I-hom e ⟫!}
+    (_∘I_ {Q = Q} {𝓒 = 𝓒} {𝓓 = 𝓓} F ı) .I-hom e =  transport (congS₂ (λ x y → 𝓓 .cat [ x , y ]) (sym (interp-F-comm Q (Q .dom e) 𝓒 𝓓 F ı)) (sym (interp-F-comm Q (Q .cod e) 𝓒 𝓓 F ı))) (F .functor ⟪ ı .I-hom e ⟫) 
+  --IHom : {Q : ProductQuiver ℓq ℓq'}{𝓒 : BinaryCartesianCategory ℓc ℓc'}{𝓓 : BinaryCartesianCategory ℓd ℓd'}(F G : StrictCartesianFunctor 𝓒 𝓓)(ı : Interp Q 𝓒) → (p : F ∘I ı ≡ G ∘I ı) → (e : Q .edge) → PathP (λ i → 𝓓 .cat [ transport (interp-F-comm Q {!Q .dom e!} 𝓒 {!𝓓!} {!F!} ı) (interpret-objects Q 𝓓 (p i .I-ob) (Q .dom e)) , {!!} ]) (F .functor ⟪ ı .I-hom e ⟫) (G .functor ⟪ ı .I-hom e ⟫)
+  --IHom-lemma : {Q : ProductQuiver ℓq ℓq'}{𝓒 : BinaryCartesianCategory ℓc ℓc'}{𝓓 : BinaryCartesianCategory ℓd ℓd'}{F G : StrictCartesianFunctor 𝓒 𝓓}{ı : Interp Q 𝓒}
+  --  → {p : F ∘I ı ≡ G ∘I ı}
+  --  → {e : Q .edge}
+  --  → I → Type ℓd' 
+  --IHom-lemma {Q = Q} {𝓓 = 𝓓} {F = F} {G = G} {ı = ı} {p = p} {e = e} i = 𝓓 .cat [ (interpret-objects Q 𝓓 (p i .I-ob) (Q .dom e)) , (interpret-objects Q 𝓓 (p i .I-ob) (Q .cod e)) ]
+--F (interpret-objects Q 𝓒 (ı .I-ob) (Q .dom e)) !=
+--interpret-objects Q 𝓓 (p i0 .I-ob) (Q .dom e)
+    module _ (G : StrictCartesianFunctor 𝓒 𝓓)(p : F ∘I ı ≡ G ∘I ı) where
+      IHom : (e : Q .edge)
+        --→ PathP (λ i → 𝓓 .cat [ (interpret-objects Q 𝓓 (p i .I-ob) (Q .dom e)) , (interpret-objects Q 𝓓 (p i .I-ob) (Q .cod e)) ]) (F .functor ⟪ ı .I-hom e ⟫) (G .functor ⟪ ı .I-hom e ⟫)
+        → PathP (λ i → 𝓓 .cat [ (interpret-objects Q 𝓓 (p i .I-ob) (Q .dom e)) , (interpret-objects Q 𝓓 (p i .I-ob) (Q .cod e)) ]) ((F ∘I ı) .I-hom e ) ((G ∘I ı) .I-hom e)
+      IHom e i = p i .I-hom e
+      IHom'' : (e : Q .edge) → PathP (λ i → {!!}) ((F ∘I ı) .I-hom e) (F .functor ⟪ ı .I-hom e ⟫)
+      IHom'' e = {!!}
+      IHom' : (e : Q .edge) → PathP (λ i → 𝓓 .cat [ _ , _ ]) (F .functor ⟪ ı .I-hom e ⟫) (G .functor ⟪ ı .I-hom e ⟫)
+      IHom' e i = {!!}
 open Data
 open ProductQuiver
 module _ (Q : ProductQuiver ℓq ℓq') where
