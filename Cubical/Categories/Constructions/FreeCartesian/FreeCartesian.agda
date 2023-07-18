@@ -101,7 +101,7 @@ module Data where -- generating data
       F-G-Ihom-PathP-lem {e = e} = F-interp-ob-comm-inside-hom F ı ∙∙ F-G-interp-Ihom-PathP-lem ∙∙ sym (F-interp-ob-comm-inside-hom G ı)
       F-G-Ihom-PathP : {e : Q .edge}
         → PathP (λ i → F-G-Ihom-PathP-lem {e = e} i) (F .functor ⟪ ı .I-hom e ⟫) (G .functor ⟪ ı .I-hom e ⟫)
-      F-G-Ihom-PathP {e = e} = doubleCompP' {eq₁ = F-interp-ob-comm-inside-hom F ı {e = e}} {eq₂ = F-G-interp-Ihom-PathP-lem} {eq₃ = sym (F-interp-ob-comm-inside-hom G ı)} vert-F F-G-interp-Ihom-PathP (symP vert-G)
+      F-G-Ihom-PathP {e = e} = doubleCompP' vert-F F-G-interp-Ihom-PathP (symP vert-G)
 open Data
 open ProductQuiver
 module _ (Q : ProductQuiver ℓq ℓq') where
