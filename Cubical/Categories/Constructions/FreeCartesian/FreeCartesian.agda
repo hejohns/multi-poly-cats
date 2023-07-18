@@ -12,6 +12,7 @@ open BinaryCartesianCategory
 open StrictCartesianFunctor
 open import Cubical.Categories.Functor
 open Functor
+open import Cubical.Foundations.Transport
 module _ where -- helpers
   private variable
       A : Type ℓ
@@ -23,8 +24,6 @@ module _ where -- helpers
   -- this has to be defined already somewhere... right?
   congS₂ : (f : A → B → C) → a ≡ a' → b ≡ b' → f a b ≡ f a' b'
   congS₂ f p q i = f (p i) (q i)
-  --triple : {(a , b , c) (a' , b' , c') : Σ[ x ∈ A ] Σ[ b ∈ B ] C} → a ≡ a' → b ≡ b' → c ≡ c' → (a , b , c) ≡ (a' , b' , c')
-  --triple p q r i = p i , q i  , r i
 module Data where -- generating data
   module _ (Vertex : Type ℓ) where
     data ProdTypeExpr : Type ℓ where
@@ -53,19 +52,19 @@ module Data where -- generating data
   inside-× 𝓒 = congS₂ (λ x y → x ×⟨ 𝓒 ⟩ y)
   module _ {Q : ProductQuiver ℓq ℓq'}{𝓒 : BinaryCartesianCategory ℓc ℓc'}{𝓓 : BinaryCartesianCategory ℓd ℓd'}(F : StrictCartesianFunctor 𝓒 𝓓)(ı : Interp Q 𝓒) where
     -- TODO: this is terrible
-    -- rename these lemmas later
-    -- NOTE: less `sym` s with the equation this way
+    -- hejohns: checked
     F-interp-ob-comm : ∀ t → F .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) t ⟆ ≡ interpret-objects Q 𝓓 (λ x → F .functor ⟅ ı .I-ob x ⟆) t
     F-interp-ob-comm (↑̬ B) = refl
     F-interp-ob-comm (B ×̬ C) = F .preserves-× ∙ inside-× 𝓓 (F-interp-ob-comm B) (F-interp-ob-comm C)
     F-interp-ob-comm ⊤̬ = F .preserves-⊤
+    -- hejohns: checked
     F-interp-ob-comm-inside-hom : {e : Q .edge} →
       𝓓 .cat [ F .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) (Q .dom e) ⟆ , F .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) (Q .cod e) ⟆ ] ≡ 𝓓 .cat [ interpret-objects Q 𝓓 (λ x → F .functor ⟅ ı .I-ob x ⟆) (Q .dom e) , interpret-objects Q 𝓓 (λ x → F .functor ⟅ ı .I-ob x ⟆) (Q .cod e) ]
     F-interp-ob-comm-inside-hom {e = e} = congS₂ (λ x y → 𝓓 .cat [ x , y ]) (F-interp-ob-comm (Q .dom e)) (F-interp-ob-comm (Q .cod e))
     -- extend interpretation along functor
     _∘I_ : Interp Q 𝓓
     _∘I_ .I-ob A = F .functor ⟅ ı .I-ob A ⟆
-    _∘I_ .I-hom e =  transport F-interp-ob-comm-inside-hom (F .functor ⟪ ı .I-hom e ⟫) 
+    _∘I_ .I-hom e =  transport F-interp-ob-comm-inside-hom (F .functor ⟪ ı .I-hom e ⟫) -- this transport causes so much pain
     -- by definition of _∘I_.I-hom
     F-interp-PathP : {e : Q .edge} → PathP (λ i → F-interp-ob-comm-inside-hom {e = e} i) (F .functor ⟪ ı .I-hom e ⟫) ((_∘I_) .I-hom e) 
     F-interp-PathP {e = e} = toPathP refl
@@ -77,62 +76,32 @@ module Data where -- generating data
       F-G-interp-Ihom-PathP : {e : Q .edge}
         → PathP (λ i → F-G-interp-Ihom-PathP-lem i) ((F ∘I ı) .I-hom e ) ((G ∘I ı) .I-hom e)
       F-G-interp-Ihom-PathP {e = e} = congP (λ i x → x .I-hom e) p
-      -- convert PathPs to homogenous paths so we can work with them
-      open import Cubical.Foundations.Path
-      open import Cubical.Foundations.Transport
       vert-F : {e : Q .edge}
         → PathP (λ i → F-interp-ob-comm-inside-hom F ı {e = e} i) (F .functor ⟪ ı .I-hom e ⟫) ((F ∘I ı) .I-hom e )
       vert-F = F-interp-PathP F ı
-      --vert-F' : {e : Q .edge} → _
-      --vert-F' {e = e} = fromPathP (vert-F {e = e})
       vert-G : {e : Q .edge}
         → PathP (λ i → F-interp-ob-comm-inside-hom G ı {e = e} i) (G .functor ⟪ ı .I-hom e ⟫) ((G ∘I ı) .I-hom e )
       vert-G = F-interp-PathP G ı
-      --vert-G' : {e : Q .edge} → _
-      --vert-G' {e = e} = fromPathP⁻ (vert-G {e = e})
-      --horz-F-G : {e : Q .edge} → _
-      --horz-F-G {e = e} = fromPathP (F-G-interp-Ihom-PathP {e = e})
       doubleCompP : {A B C D : Type ℓ} → ∀{a b c d}
-        → (eq₁ : A ≡ B)
-        → (eq₂ : B ≡ C)
-        → (eq₃ : C ≡ D)
+        → {eq₁ : A ≡ B}
+        → {eq₂ : B ≡ C}
+        → {eq₃ : C ≡ D}
         → (p : PathP (λ i → eq₁ i) a b)(q : PathP (λ i → eq₂ i) b c)(r : PathP (λ i → eq₃ i) c d)
         → PathP (λ i → (eq₁ ∙ eq₂ ∙ eq₃) i) a d
-      doubleCompP {a = a} {b = b} eq₁ eq₂ eq₃ p q r = toPathP ((transportComposite eq₁ (eq₂ ∙ eq₃) a ∙ (congS (transport (eq₂ ∙ eq₃)) (fromPathP p)) ∙ transportComposite eq₂ eq₃ b) ∙ (congS (transport eq₃) (fromPathP q)) ∙ fromPathP r)
+      doubleCompP p q r = compPathP p (compPathP q r)
       doubleCompP' : {A B C D : Type ℓ} → ∀{a b c d}
-        → (eq₁ : A ≡ B)
-        → (eq₂ : B ≡ C)
-        → (eq₃ : C ≡ D)
-        → (p : PathP (λ i → eq₁ i) a b)(q : PathP (λ i → eq₂ i) b c)(r : PathP (λ i → eq₃ i) c d)
-        → PathP (λ i → (eq₁ ∙ eq₂ ∙ eq₃) i) a d
-      --doubleCompP' {a = a} {b = b} eq₁ eq₂ eq₃ p q r = compPathP (compPathP p q) r
-      doubleCompP' {a = a} {b = b} eq₁ eq₂ eq₃ p q r = compPathP p (compPathP q r)
-      doubleCompP'' : {A B C D : Type ℓ} → ∀{a b c d}
-        → (eq₁ : A ≡ B)
-        → (eq₂ : B ≡ C)
-        → (eq₃ : C ≡ D)
+        → {eq₁ : A ≡ B}
+        → {eq₂ : B ≡ C}
+        → {eq₃ : C ≡ D}
         → (p : PathP (λ i → eq₁ i) a b)(q : PathP (λ i → eq₂ i) b c)(r : PathP (λ i → eq₃ i) c d)
         → PathP (λ i → (eq₁ ∙∙ eq₂ ∙∙ eq₃) i) a d
-      doubleCompP'' {a = a} {b = b} eq₁ eq₂ eq₃ p q r = toPathP (congS (λ x → transport x a) (doubleCompPath≡compPath eq₁ eq₂ eq₃) ∙ ((transportComposite eq₁ (eq₂ ∙ eq₃) a ∙ (congS (transport (eq₂ ∙ eq₃)) (fromPathP p)) ∙ transportComposite eq₂ eq₃ b) ∙ (congS (transport eq₃) (fromPathP q)) ∙ fromPathP r))
-      doubleCompP''' : {A B C D : Type ℓ} → ∀{a b c d}
-        → (eq₁ : A ≡ B)
-        → (eq₂ : B ≡ C)
-        → (eq₃ : C ≡ D)
-        → (p : PathP (λ i → eq₁ i) a b)(q : PathP (λ i → eq₂ i) b c)(r : PathP (λ i → eq₃ i) c d)
-        → PathP (λ i → (eq₁ ∙∙ eq₂ ∙∙ eq₃) i) a d
-      doubleCompP''' {a = a} {b = b} eq₁ eq₂ eq₃ p q r = toPathP (congS (λ x → transport x a) (doubleCompPath≡compPath eq₁ eq₂ eq₃) ∙ (fromPathP (doubleCompP' eq₁ eq₂ eq₃ p q r)))
+      doubleCompP' {a = a} {eq₁ = eq₁} {eq₂ = eq₂} {eq₃ = eq₃} p q r = toPathP (congS (λ x → transport x a) (doubleCompPath≡compPath eq₁ eq₂ eq₃) ∙ (fromPathP (doubleCompP p q r)))
       F-G-Ihom-PathP-lem : {e : Q .edge}
         → 𝓓 .cat [ F .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) (Q .dom e) ⟆ , F .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) (Q .cod e) ⟆ ] ≡ 𝓓 .cat [ G .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) (Q .dom e) ⟆ , G .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) (Q .cod e) ⟆ ]
       F-G-Ihom-PathP-lem {e = e} = F-interp-ob-comm-inside-hom F ı ∙∙ F-G-interp-Ihom-PathP-lem ∙∙ sym (F-interp-ob-comm-inside-hom G ı)
       F-G-Ihom-PathP : {e : Q .edge}
         → PathP (λ i → F-G-Ihom-PathP-lem {e = e} i) (F .functor ⟪ ı .I-hom e ⟫) (G .functor ⟪ ı .I-hom e ⟫)
-      --F-G-Ihom-PathP {e = e} = congP (λ i a → transport {!!} a) (vert-F' ◁ F-G-interp-Ihom-PathP ▷ sym vert-G')
-      --F-G-Ihom-PathP {e = e} = toPathP ({!horz-F-G!} ∙ vert-G' ∙ transport⁻Transport {ℓ = ℓd'} (F-interp-ob-comm-inside-hom G ı) (G .functor ⟪ ı .I-hom e ⟫))
-      --F-G-Ihom-PathP {e = e} = doubleCompP (F-interp-ob-comm-inside-hom F ı) F-G-interp-Ihom-PathP-lem (sym (F-interp-ob-comm-inside-hom G ı)) vert-F {!!} (symP vert-G)
-      F-G-Ihom-PathP {e = e} = {!doubleCompP (F-interp-ob-comm-inside-hom F ı {e = e}) F-G-interp-Ihom-PathP-lem (sym (F-interp-ob-comm-inside-hom G ı)) vert-F F-G-interp-Ihom-PathP (symP vert-G)!}
-      --doubleCompP (F-interp-ob-comm-inside-hom F ı {e = e}) F-G-interp-Ihom-PathP-lem (sym (F-interp-ob-comm-inside-hom G ı)) vert-F F-G-interp-Ihom-PathP (symP vert-G)
-      --F-G-Ihom-PathP {e = e} = toPathP ({!!} ∙ vert-G' ∙ {!!})
-      --(congS (transport vert-G') horz-F-G)
+      F-G-Ihom-PathP {e = e} = doubleCompP' {eq₁ = F-interp-ob-comm-inside-hom F ı {e = e}} {eq₂ = F-G-interp-Ihom-PathP-lem} {eq₃ = sym (F-interp-ob-comm-inside-hom G ı)} vert-F F-G-interp-Ihom-PathP (symP vert-G)
 open Data
 open ProductQuiver
 module _ (Q : ProductQuiver ℓq ℓq') where
@@ -186,7 +155,7 @@ module _ (Q : ProductQuiver ℓq ℓq') where
   reinterp-trivial ⊤̬  = refl
   η : Interp Q FreeCartesianCategory
   η .I-ob = ↑̬
-  η .I-hom e = transport (sym inside-EdgeExpr) (↑ₑ e)
+  η .I-hom e = transport⁻ inside-EdgeExpr (↑ₑ e)
     where
     inside-EdgeExpr : ∀{A B} → EdgeExpr[ interpret-objects Q FreeCartesianCategory ↑̬ A , interpret-objects Q FreeCartesianCategory ↑̬ B ] ≡ EdgeExpr[ A , B ]
     inside-EdgeExpr {A} {B} = congS₂ (λ x y → EdgeExpr[ x , y ]) (reinterp-trivial A) (reinterp-trivial B)
@@ -208,7 +177,7 @@ module _ (Q : ProductQuiver ℓq ℓq') where
       isProp-aom-type : ∀{t t'} → (f : FreeCartesianCategory .cat [ t , t' ]) → isProp (F⟪-⟫≡F'⟪-⟫ f)
       isProp-aom-type f = isPropRetract fromPathP toPathP (PathPIsoPath _ _ _ .leftInv) (𝓒 .cat .isSetHom _ _)
       aom : ∀{t t'} → (f : FreeCartesianCategory .cat [ t , t' ]) → F⟪-⟫≡F'⟪-⟫ f
-      aom = elimExpProp {P = F⟪-⟫≡F'⟪-⟫} isProp-aom-type (λ e → {!agree-on-η !}) {!!} {!!} {!!} {!!} {!!} {!!}
+      aom = elimExpProp {P = F⟪-⟫≡F'⟪-⟫} isProp-aom-type (λ e → {!F-G-Ihom-PathP F F' η agree-on-η {e = e}!}) {!!} {!!} {!!} {!!} {!!} {!!}
         where
         -- prove a proposition by induction over the FreeCartesianCategory
         -- so we can ignore higher path coherences in the FreeCartesianCategory
