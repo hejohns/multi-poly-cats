@@ -83,28 +83,54 @@ module Data where -- generating data
       vert-F : {e : Q .edge}
         → PathP (λ i → F-interp-ob-comm-inside-hom F ı {e = e} i) (F .functor ⟪ ı .I-hom e ⟫) ((F ∘I ı) .I-hom e )
       vert-F = F-interp-PathP F ı
-      vert-F' : {e : Q .edge} → _
-      vert-F' {e = e} = fromPathP (vert-F {e = e})
+      --vert-F' : {e : Q .edge} → _
+      --vert-F' {e = e} = fromPathP (vert-F {e = e})
       vert-G : {e : Q .edge}
         → PathP (λ i → F-interp-ob-comm-inside-hom G ı {e = e} i) (G .functor ⟪ ı .I-hom e ⟫) ((G ∘I ı) .I-hom e )
       vert-G = F-interp-PathP G ı
-      vert-G' : {e : Q .edge} → _
-      vert-G' {e = e} = fromPathP⁻ (vert-G {e = e})
-      horz-F-G : {e : Q .edge} → _
-      horz-F-G {e = e} = fromPathP (F-G-interp-Ihom-PathP {e = e})
-      tripleP : {A B C : I → Type ℓ} → ∀{w x x' y y' z}
-        → (eq₁ : A i1 ≡ B i0)
-        → (eq₂ : B i1 ≡ C i0)
-        → (p : PathP A w x)(q : PathP B x' y)(r : PathP C y' z)
-        → PathP {!!} w z
-      tripleP p q r = {!!}
+      --vert-G' : {e : Q .edge} → _
+      --vert-G' {e = e} = fromPathP⁻ (vert-G {e = e})
+      --horz-F-G : {e : Q .edge} → _
+      --horz-F-G {e = e} = fromPathP (F-G-interp-Ihom-PathP {e = e})
+      doubleCompP : {A B C D : Type ℓ} → ∀{a b c d}
+        → (eq₁ : A ≡ B)
+        → (eq₂ : B ≡ C)
+        → (eq₃ : C ≡ D)
+        → (p : PathP (λ i → eq₁ i) a b)(q : PathP (λ i → eq₂ i) b c)(r : PathP (λ i → eq₃ i) c d)
+        → PathP (λ i → (eq₁ ∙ eq₂ ∙ eq₃) i) a d
+      doubleCompP {a = a} {b = b} eq₁ eq₂ eq₃ p q r = toPathP ((transportComposite eq₁ (eq₂ ∙ eq₃) a ∙ (congS (transport (eq₂ ∙ eq₃)) (fromPathP p)) ∙ transportComposite eq₂ eq₃ b) ∙ (congS (transport eq₃) (fromPathP q)) ∙ fromPathP r)
+      doubleCompP' : {A B C D : Type ℓ} → ∀{a b c d}
+        → (eq₁ : A ≡ B)
+        → (eq₂ : B ≡ C)
+        → (eq₃ : C ≡ D)
+        → (p : PathP (λ i → eq₁ i) a b)(q : PathP (λ i → eq₂ i) b c)(r : PathP (λ i → eq₃ i) c d)
+        → PathP (λ i → (eq₁ ∙ eq₂ ∙ eq₃) i) a d
+      --doubleCompP' {a = a} {b = b} eq₁ eq₂ eq₃ p q r = compPathP (compPathP p q) r
+      doubleCompP' {a = a} {b = b} eq₁ eq₂ eq₃ p q r = compPathP p (compPathP q r)
+      doubleCompP'' : {A B C D : Type ℓ} → ∀{a b c d}
+        → (eq₁ : A ≡ B)
+        → (eq₂ : B ≡ C)
+        → (eq₃ : C ≡ D)
+        → (p : PathP (λ i → eq₁ i) a b)(q : PathP (λ i → eq₂ i) b c)(r : PathP (λ i → eq₃ i) c d)
+        → PathP (λ i → (eq₁ ∙∙ eq₂ ∙∙ eq₃) i) a d
+      doubleCompP'' {a = a} {b = b} eq₁ eq₂ eq₃ p q r = toPathP (congS (λ x → transport x a) (doubleCompPath≡compPath eq₁ eq₂ eq₃) ∙ ((transportComposite eq₁ (eq₂ ∙ eq₃) a ∙ (congS (transport (eq₂ ∙ eq₃)) (fromPathP p)) ∙ transportComposite eq₂ eq₃ b) ∙ (congS (transport eq₃) (fromPathP q)) ∙ fromPathP r))
+      doubleCompP''' : {A B C D : Type ℓ} → ∀{a b c d}
+        → (eq₁ : A ≡ B)
+        → (eq₂ : B ≡ C)
+        → (eq₃ : C ≡ D)
+        → (p : PathP (λ i → eq₁ i) a b)(q : PathP (λ i → eq₂ i) b c)(r : PathP (λ i → eq₃ i) c d)
+        → PathP (λ i → (eq₁ ∙∙ eq₂ ∙∙ eq₃) i) a d
+      doubleCompP''' {a = a} {b = b} eq₁ eq₂ eq₃ p q r = toPathP (congS (λ x → transport x a) (doubleCompPath≡compPath eq₁ eq₂ eq₃) ∙ (fromPathP (doubleCompP' eq₁ eq₂ eq₃ p q r)))
       F-G-Ihom-PathP-lem : {e : Q .edge}
         → 𝓓 .cat [ F .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) (Q .dom e) ⟆ , F .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) (Q .cod e) ⟆ ] ≡ 𝓓 .cat [ G .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) (Q .dom e) ⟆ , G .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) (Q .cod e) ⟆ ]
       F-G-Ihom-PathP-lem {e = e} = F-interp-ob-comm-inside-hom F ı ∙∙ F-G-interp-Ihom-PathP-lem ∙∙ sym (F-interp-ob-comm-inside-hom G ı)
       F-G-Ihom-PathP : {e : Q .edge}
         → PathP (λ i → F-G-Ihom-PathP-lem {e = e} i) (F .functor ⟪ ı .I-hom e ⟫) (G .functor ⟪ ı .I-hom e ⟫)
       --F-G-Ihom-PathP {e = e} = congP (λ i a → transport {!!} a) (vert-F' ◁ F-G-interp-Ihom-PathP ▷ sym vert-G')
-      F-G-Ihom-PathP {e = e} = toPathP ({!horz-F-G!} ∙ vert-G' ∙ transport⁻Transport {ℓ = ℓd'} (F-interp-ob-comm-inside-hom G ı) (G .functor ⟪ ı .I-hom e ⟫))
+      --F-G-Ihom-PathP {e = e} = toPathP ({!horz-F-G!} ∙ vert-G' ∙ transport⁻Transport {ℓ = ℓd'} (F-interp-ob-comm-inside-hom G ı) (G .functor ⟪ ı .I-hom e ⟫))
+      --F-G-Ihom-PathP {e = e} = doubleCompP (F-interp-ob-comm-inside-hom F ı) F-G-interp-Ihom-PathP-lem (sym (F-interp-ob-comm-inside-hom G ı)) vert-F {!!} (symP vert-G)
+      F-G-Ihom-PathP {e = e} = {!doubleCompP (F-interp-ob-comm-inside-hom F ı {e = e}) F-G-interp-Ihom-PathP-lem (sym (F-interp-ob-comm-inside-hom G ı)) vert-F F-G-interp-Ihom-PathP (symP vert-G)!}
+      --doubleCompP (F-interp-ob-comm-inside-hom F ı {e = e}) F-G-interp-Ihom-PathP-lem (sym (F-interp-ob-comm-inside-hom G ı)) vert-F F-G-interp-Ihom-PathP (symP vert-G)
       --F-G-Ihom-PathP {e = e} = toPathP ({!!} ∙ vert-G' ∙ {!!})
       --(congS (transport vert-G') horz-F-G)
 open Data
