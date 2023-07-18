@@ -71,15 +71,42 @@ module Data where -- generating data
     F-interp-PathP {e = e} = toPathP refl
   module _ {Q : ProductQuiver ℓq ℓq'}{𝓒 : BinaryCartesianCategory ℓc ℓc'}{𝓓 : BinaryCartesianCategory ℓd ℓd'}(F G : StrictCartesianFunctor 𝓒 𝓓)(ı : Interp Q 𝓒) where
     module _ (p : F ∘I ı ≡ G ∘I ı) where
-      IHom : (e : Q .edge)
-        → PathP (λ i → 𝓓 .cat [ (interpret-objects Q 𝓓 (p i .I-ob) (Q .dom e)) , (interpret-objects Q 𝓓 (p i .I-ob) (Q .cod e)) ]) ((F ∘I ı) .I-hom e ) ((G ∘I ı) .I-hom e)
-      IHom e i = p i .I-hom e
-      --IHom'' :((F ∘I ı) .I-hom e) → (F .functor ⟪ ı .I-hom e ⟫)
-      --IHom'' e i = {!!}
-      --blah : (e : Q .edge) → 𝓓 .cat [ F .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) (Q .dom e) ⟆ , F .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) (Q .cod e) ⟆ ] ≡ 𝓓 .cat [ interpret-objects Q 𝓓 (λ x → F .functor ⟅ ı .I-ob x ⟆) (Q .dom e) , interpret-objects Q 𝓓 (λ x → F .functor ⟅ ı .I-ob x ⟆) (Q .cod e) ]
-      --blah e = F-interp-ob-comm-inside-hom F ı
-      IHom' : (e : Q .edge) → PathP (λ i → 𝓓 .cat [ _ , _ ]) (F .functor ⟪ ı .I-hom e ⟫) (G .functor ⟪ ı .I-hom e ⟫)
-      IHom' e = congP (transport (sym (F-interp-ob-comm-inside-hom {!!} ı)) {!!}) (IHom e)
+      F-G-interp-Ihom-PathP-lem : {e : Q .edge}
+        → 𝓓 .cat [ (interpret-objects Q 𝓓 ((F ∘I ı) .I-ob) (Q .dom e)) , (interpret-objects Q 𝓓 ((F ∘I ı) .I-ob) (Q .cod e)) ] ≡ 𝓓 .cat [ (interpret-objects Q 𝓓 ((G ∘I ı) .I-ob) (Q .dom e)) , (interpret-objects Q 𝓓 ((G ∘I ı) .I-ob) (Q .cod e)) ]
+      F-G-interp-Ihom-PathP-lem {e = e} = congS (λ x → 𝓓 .cat [ (interpret-objects Q 𝓓 (x .I-ob) (Q .dom e)) , (interpret-objects Q 𝓓 (x .I-ob) (Q .cod e)) ]) p
+      F-G-interp-Ihom-PathP : {e : Q .edge}
+        → PathP (λ i → F-G-interp-Ihom-PathP-lem i) ((F ∘I ı) .I-hom e ) ((G ∘I ı) .I-hom e)
+      F-G-interp-Ihom-PathP {e = e} = congP (λ i x → x .I-hom e) p
+      -- convert PathPs to homogenous paths so we can work with them
+      open import Cubical.Foundations.Path
+      open import Cubical.Foundations.Transport
+      vert-F : {e : Q .edge}
+        → PathP (λ i → F-interp-ob-comm-inside-hom F ı {e = e} i) (F .functor ⟪ ı .I-hom e ⟫) ((F ∘I ı) .I-hom e )
+      vert-F = F-interp-PathP F ı
+      vert-F' : {e : Q .edge} → _
+      vert-F' {e = e} = fromPathP (vert-F {e = e})
+      vert-G : {e : Q .edge}
+        → PathP (λ i → F-interp-ob-comm-inside-hom G ı {e = e} i) (G .functor ⟪ ı .I-hom e ⟫) ((G ∘I ı) .I-hom e )
+      vert-G = F-interp-PathP G ı
+      vert-G' : {e : Q .edge} → _
+      vert-G' {e = e} = fromPathP⁻ (vert-G {e = e})
+      horz-F-G : {e : Q .edge} → _
+      horz-F-G {e = e} = fromPathP (F-G-interp-Ihom-PathP {e = e})
+      tripleP : {A B C : I → Type ℓ} → ∀{w x x' y y' z}
+        → (eq₁ : A i1 ≡ B i0)
+        → (eq₂ : B i1 ≡ C i0)
+        → (p : PathP A w x)(q : PathP B x' y)(r : PathP C y' z)
+        → PathP {!!} w z
+      tripleP p q r = {!!}
+      F-G-Ihom-PathP-lem : {e : Q .edge}
+        → 𝓓 .cat [ F .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) (Q .dom e) ⟆ , F .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) (Q .cod e) ⟆ ] ≡ 𝓓 .cat [ G .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) (Q .dom e) ⟆ , G .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) (Q .cod e) ⟆ ]
+      F-G-Ihom-PathP-lem {e = e} = F-interp-ob-comm-inside-hom F ı ∙∙ F-G-interp-Ihom-PathP-lem ∙∙ sym (F-interp-ob-comm-inside-hom G ı)
+      F-G-Ihom-PathP : {e : Q .edge}
+        → PathP (λ i → F-G-Ihom-PathP-lem {e = e} i) (F .functor ⟪ ı .I-hom e ⟫) (G .functor ⟪ ı .I-hom e ⟫)
+      --F-G-Ihom-PathP {e = e} = congP (λ i a → transport {!!} a) (vert-F' ◁ F-G-interp-Ihom-PathP ▷ sym vert-G')
+      F-G-Ihom-PathP {e = e} = toPathP ({!horz-F-G!} ∙ vert-G' ∙ transport⁻Transport {ℓ = ℓd'} (F-interp-ob-comm-inside-hom G ı) (G .functor ⟪ ı .I-hom e ⟫))
+      --F-G-Ihom-PathP {e = e} = toPathP ({!!} ∙ vert-G' ∙ {!!})
+      --(congS (transport vert-G') horz-F-G)
 open Data
 open ProductQuiver
 module _ (Q : ProductQuiver ℓq ℓq') where
