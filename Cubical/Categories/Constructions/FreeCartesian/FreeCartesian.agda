@@ -14,90 +14,9 @@ open import Cubical.Categories.Functor
 open Functor
 open import Cubical.Foundations.Transport
 open import Cubical.Foundations.Path
-module _ where -- helpers
-  private variable
-      A : Type ℓ
-      B : Type ℓ'
-      C : Type ℓ''
-      D : Type ℓ'''
-      a a' : A
-      b b' : B
-      c c' : C
-      d : D
-  -- this has to be defined already somewhere... right?
-  congS₂ : (f : A → B → C) → a ≡ a' → b ≡ b' → f a b ≡ f a' b'
-  congS₂ f p q i = f (p i) (q i)
-  cong-transport-PathP : {eq₁ eq₂ : A ≡ B} → (eq₂ ≡ eq₁) → (p : PathP (λ i → eq₁ i) a b) → PathP (λ i → eq₂ i) a b
-  cong-transport-PathP {a = a} eq₁-₂ p = toPathP ((congS (λ x → transport x a) eq₁-₂) ∙ fromPathP p)
-  doubleCompP : {A B C D : Type ℓ} → ∀{a b c d}{eq₁ : A ≡ B}{eq₂ : B ≡ C}{eq₃ : C ≡ D}
-    → (p : PathP (λ i → eq₁ i) a b)(q : PathP (λ i → eq₂ i) b c)(r : PathP (λ i → eq₃ i) c d)
-    → PathP (λ i → (eq₁ ∙ eq₂ ∙ eq₃) i) a d
-  doubleCompP p q r = compPathP p (compPathP q r)
-  -- heterogeneous double composition, at the "proper" types
-  _⋆⋆_⋆⋆_ : {eq₁ : A ≡ B}{eq₂ : B ≡ C}{eq₃ : C ≡ D}
-    → (p : PathP (λ i → eq₁ i) a b)(q : PathP (λ i → eq₂ i) b c)(r : PathP (λ i → eq₃ i) c d)
-    → PathP (λ i → (eq₁ ∙∙ eq₂ ∙∙ eq₃) i) a d
-  _⋆⋆_⋆⋆_ {a = a} {eq₁ = eq₁} {eq₂ = eq₂} {eq₃ = eq₃} p q r = cong-transport-PathP (doubleCompPath≡compPath eq₁ eq₂ eq₃) (doubleCompP p q r)
-  --toPathP ((congS (λ x → transport x a) (doubleCompPath≡compPath eq₁ eq₂ eq₃)) ∙ (fromPathP (doubleCompP p q r)))
-module Data where -- generating data
-  module _ (Vertex : Type ℓ) where
-    data ProdTypeExpr : Type ℓ where
-      ↑̬ : Vertex → ProdTypeExpr
-      _×̬_ : ProdTypeExpr → ProdTypeExpr → ProdTypeExpr
-      ⊤̬ : ProdTypeExpr
-  -- TODO: what is going on with these level variables
-  record ProductQuiver ℓq ℓq' : Type (ℓ-suc (ℓ-max ℓq ℓq')) where
-    field
-      vertex : Type ℓq
-      edge : Type ℓq'
-      dom : edge → ProdTypeExpr vertex
-      cod : edge → ProdTypeExpr vertex
-  open ProductQuiver
-  interpret-objects : (Q : ProductQuiver ℓq ℓq')(𝓒 : BinaryCartesianCategory ℓc ℓc') → (Q .vertex → 𝓒 .cat .ob) → ProdTypeExpr (Q .vertex) → 𝓒 .cat .ob
-  interpret-objects Q 𝓒 ı (↑̬ A) = ı A
-  interpret-objects Q 𝓒 ı (A ×̬ B) = interpret-objects Q 𝓒 ı A ×⟨ 𝓒 ⟩ interpret-objects Q 𝓒 ı B
-  interpret-objects Q 𝓒 ı ⊤̬ = 𝓒 .⊤
-  record Interp (Q : ProductQuiver ℓq ℓq')(𝓒 : BinaryCartesianCategory ℓc ℓc') : Type (ℓ-max (ℓ-max ℓq ℓq') (ℓ-max ℓc ℓc')) where
-    field
-      I-ob : Q .vertex → 𝓒 .cat .ob 
-      I-hom : (e : Q .edge) → 𝓒 .cat [ interpret-objects Q 𝓒 I-ob (Q .dom e) , interpret-objects Q 𝓒 I-ob (Q .cod e) ]
-  open Interp
-  -- helpers
-  inside-× : (𝓒 : BinaryCartesianCategory ℓc ℓc') → ∀{A A' B B'} → A ≡ A' → B ≡ B' → A ×⟨ 𝓒 ⟩ B ≡ A' ×⟨ 𝓒 ⟩ B'
-  inside-× 𝓒 = congS₂ (λ x y → x ×⟨ 𝓒 ⟩ y)
-  module _ {Q : ProductQuiver ℓq ℓq'}{𝓒 : BinaryCartesianCategory ℓc ℓc'}{𝓓 : BinaryCartesianCategory ℓd ℓd'}(F : StrictCartesianFunctor 𝓒 𝓓)(ı : Interp Q 𝓒) where
-    -- TODO: this is terrible
-    -- hejohns: checked
-    F-interp-ob-comm : ∀ t → F .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) t ⟆ ≡ interpret-objects Q 𝓓 (λ x → F .functor ⟅ ı .I-ob x ⟆) t
-    F-interp-ob-comm (↑̬ B) = refl
-    F-interp-ob-comm (B ×̬ C) = F .preserves-× ∙ inside-× 𝓓 (F-interp-ob-comm B) (F-interp-ob-comm C)
-    F-interp-ob-comm ⊤̬ = F .preserves-⊤
-    -- hejohns: checked
-    F-interp-ob-comm-inside-hom : {e : Q .edge} →
-      𝓓 .cat [ F .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) (Q .dom e) ⟆ , F .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) (Q .cod e) ⟆ ] ≡ 𝓓 .cat [ interpret-objects Q 𝓓 (λ x → F .functor ⟅ ı .I-ob x ⟆) (Q .dom e) , interpret-objects Q 𝓓 (λ x → F .functor ⟅ ı .I-ob x ⟆) (Q .cod e) ]
-    F-interp-ob-comm-inside-hom {e = e} = congS₂ (λ x y → 𝓓 .cat [ x , y ]) (F-interp-ob-comm (Q .dom e)) (F-interp-ob-comm (Q .cod e))
-    -- extend interpretation along functor
-    _∘I_ : Interp Q 𝓓
-    _∘I_ .I-ob A = F .functor ⟅ ı .I-ob A ⟆
-    _∘I_ .I-hom e =  transport F-interp-ob-comm-inside-hom (F .functor ⟪ ı .I-hom e ⟫) -- this transport causes so much pain
-    -- by definition of _∘I_.I-hom
-    F-interp-PathP : {e : Q .edge} → PathP (λ i → F-interp-ob-comm-inside-hom {e = e} i) (F .functor ⟪ ı .I-hom e ⟫) ((_∘I_) .I-hom e) 
-    F-interp-PathP {e = e} = toPathP refl
-  module _ {Q : ProductQuiver ℓq ℓq'}{𝓒 : BinaryCartesianCategory ℓc ℓc'}{𝓓 : BinaryCartesianCategory ℓd ℓd'}(F G : StrictCartesianFunctor 𝓒 𝓓)(ı : Interp Q 𝓒) where
-    module _ (p : F ∘I ı ≡ G ∘I ı) where
-      F-G-interp-Ihom-PathP-lem : {e : Q .edge}
-        → 𝓓 .cat [ (interpret-objects Q 𝓓 ((F ∘I ı) .I-ob) (Q .dom e)) , (interpret-objects Q 𝓓 ((F ∘I ı) .I-ob) (Q .cod e)) ] ≡ 𝓓 .cat [ (interpret-objects Q 𝓓 ((G ∘I ı) .I-ob) (Q .dom e)) , (interpret-objects Q 𝓓 ((G ∘I ı) .I-ob) (Q .cod e)) ]
-      F-G-interp-Ihom-PathP-lem {e = e} = congS (λ x → 𝓓 .cat [ (interpret-objects Q 𝓓 (x .I-ob) (Q .dom e)) , (interpret-objects Q 𝓓 (x .I-ob) (Q .cod e)) ]) p
-      F-G-interp-Ihom-PathP : {e : Q .edge}
-        → PathP (λ i → F-G-interp-Ihom-PathP-lem i) ((F ∘I ı) .I-hom e ) ((G ∘I ı) .I-hom e)
-      F-G-interp-Ihom-PathP {e = e} = congP (λ i x → x .I-hom e) p
-      F-G-Ihom-PathP-lem : {e : Q .edge}
-        → 𝓓 .cat [ F .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) (Q .dom e) ⟆ , F .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) (Q .cod e) ⟆ ] ≡ 𝓓 .cat [ G .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) (Q .dom e) ⟆ , G .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) (Q .cod e) ⟆ ]
-      F-G-Ihom-PathP-lem {e = e} = F-interp-ob-comm-inside-hom F ı ∙∙ F-G-interp-Ihom-PathP-lem ∙∙ sym (F-interp-ob-comm-inside-hom G ı)
-      F-G-Ihom-PathP : {e : Q .edge}
-        → PathP (λ i → F-G-Ihom-PathP-lem {e = e} i) (F .functor ⟪ ı .I-hom e ⟫) (G .functor ⟪ ı .I-hom e ⟫)
-      F-G-Ihom-PathP {e = e} = F-interp-PathP F ı ⋆⋆ F-G-interp-Ihom-PathP ⋆⋆ symP (F-interp-PathP G ı)
-open Data
+open import Cubical.Categories.Constructions.FreeCartesian.Util
+open import Cubical.Categories.Constructions.FreeCartesian.Data
+open Cubical.Categories.Constructions.FreeCartesian.Data.Data
 open ProductQuiver
 module _ (Q : ProductQuiver ℓq ℓq') where
   open import Cubical.Categories.Limits.BinProduct
@@ -159,8 +78,8 @@ module _ (Q : ProductQuiver ℓq ℓq') where
     --a {e = e} = F .functor ⟪ η .I-hom e ⟫
     --b : {e : Q .edge} → 𝓒 .cat [ F .functor ⟅ Q .dom e ⟆ , F .functor ⟅ Q .cod e ⟆ ]
     --b {e = e} = F .functor ⟪ ↑ₑ e ⟫
-    foobar : {e : Q .edge} → PathP (λ i → congS₂ (λ x y → 𝓒 .cat [ F .functor ⟅ x ⟆ , F .functor ⟅ y ⟆ ]) (reinterp-trivial (Q .dom e)) (reinterp-trivial (Q .cod e)) i) (F .functor ⟪ η .I-hom e ⟫) (F .functor ⟪ ↑ₑ e ⟫)
-    foobar {e = e} = congP (λ i a → F .functor ⟪ a ⟫) (toPathP⁻ refl)
+    F⟪η⟫≡F⟪↑⟫-Hom : {e : Q .edge} → PathP (λ i → congS₂ (λ x y → 𝓒 .cat [ F .functor ⟅ x ⟆ , F .functor ⟅ y ⟆ ]) (reinterp-trivial (Q .dom e)) (reinterp-trivial (Q .cod e)) i) (F .functor ⟪ η .I-hom e ⟫) (F .functor ⟪ ↑ₑ e ⟫)
+    F⟪η⟫≡F⟪↑⟫-Hom {e = e} = congP (λ i a → F .functor ⟪ a ⟫) (toPathP⁻ refl)
   module _ {𝓒 : BinaryCartesianCategory ℓc ℓc'}(F F' : StrictCartesianFunctor FreeCartesianCategory 𝓒) where
     module _ (agree-on-η : F ∘I η ≡ F' ∘I η) where
       open import Cubical.Foundations.HLevels
@@ -172,6 +91,8 @@ module _ (Q : ProductQuiver ℓq ℓq') where
       aoo (A ×̬ B) = F .preserves-× ∙∙ inside-× 𝓒 (aoo A) (aoo B) ∙∙ sym (F' .preserves-×)
       -- F .preserves-× ∙ inside-× 𝓒 (aoo A) (aoo B) ∙ sym (F' .preserves-×)
       aoo ⊤̬ = F .preserves-⊤ ∙ sym (F' .preserves-⊤)
+      barbar : ∀ t → aoo t ≡ reinterp-trivial t
+      barbar = ?
       aom-type : ∀{t t'} → (f : FreeCartesianCategory .cat [ t , t' ]) → Type _
       aom-type {t} {t'} f = PathP (λ i → congS₂ (λ x y → 𝓒 .cat [ x , y ]) (aoo t) (aoo t') i) (F .functor .F-hom f) (F' .functor .F-hom f)
       -- mnemonic
@@ -179,45 +100,62 @@ module _ (Q : ProductQuiver ℓq ℓq') where
       -- c/p Cubical.Categories.Constructions.Free.Category proof
       isProp-aom-type : ∀{t t'} → (f : FreeCartesianCategory .cat [ t , t' ]) → isProp (F⟪-⟫≡F'⟪-⟫ f)
       isProp-aom-type f = isPropRetract fromPathP toPathP (PathPIsoPath _ _ _ .leftInv) (𝓒 .cat .isSetHom _ _)
-      aom : ∀{t t'} → (f : FreeCartesianCategory .cat [ t , t' ]) → F⟪-⟫≡F'⟪-⟫ f
-      --aom = elimExpProp {P = F⟪-⟫≡F'⟪-⟫} isProp-aom-type (λ e → {!F-G-Ihom-PathP F F' η agree-on-η {e = e}!}) {!!} {!!} {!!} {!!} {!!} {!!}
-      aom = elimExpProp {P = F⟪-⟫≡F'⟪-⟫} isProp-aom-type
-        (λ e → toPathP (congS (λ x → {!!}) (fromPathP (symP (foobar F) ⋆⋆ F-G-Ihom-PathP {Q = Q} {𝓒 = FreeCartesianCategory} {𝓓 = 𝓒} F F' η agree-on-η {e = e} ⋆⋆ foobar F'))))
-        {!!}
-        {!!}
-        {!!}
-        {!!}
-        {!!}
-        {!!}
-        where
-        -- prove a proposition by induction over the FreeCartesianCategory
-        -- so we can ignore higher path coherences in the FreeCartesianCategory
-        elimExpProp : ∀{P : ∀{t t'} → FreeCartesianCategory .cat [ t , t' ] → Type ℓ}
-          → (∀{t t'} f → isProp (P {t} {t'} f))
-          → (∀ e → P (↑ₑ e))
-          → (∀{A} → P {A} idₑ)
-          → (∀{t t' t'' f f'} → P {t} {t'} f → P {t'} {t''} f' → P (f ⋆ₑ f'))
-          → (∀{A B} → P (π₁ₑ {A} {B}))
-          → (∀{A B} → P (π₂ₑ {A} {B}))
-          → (∀{A B C f g} → P {C} {A} (f) → P {C} {B} (g) → P ⟨ f ,ₑ g ⟩)
-          → (∀{t} → P (!ₑ {t}))
-          → ∀{t t'} f → P {t} {t'} f
-        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (↑ₑ e) = P↑ e
-        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! idₑ = Pid
-        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (f ⋆ₑ f') = P⋆ {!!} {!!}
-        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (⋆ₑIdL f i) = {!!}
-        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (⋆ₑIdR f i) = {!!}
-        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (⋆ₑAssoc f f' f'' i) = {!!}
-        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (isSetEdgeExpr f f' p q i j) = {!!}
-        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! π₁ₑ = Pπ₁
-        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! π₂ₑ = Pπ₂
-        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! ⟨ f ,ₑ f₁ ⟩ = {!!}
-        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! !ₑ = P!
-        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (×̬β₁ i) = {!!}
-        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (×̬β₂ i) = {!!}
-        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (×̬η i) = {!!}
-        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (⊤̬η i) = {!!}
+      F⟪η⟫≡F'⟪η⟫-Hom : ∀ e → _
+      F⟪η⟫≡F'⟪η⟫-Hom e = F⟪ı⟫≡G⟪ı⟫-Hom F F' η agree-on-η {e = e}
+      F⟪↑⟫≡F'⟪↑⟫ : ∀ e → _
+      F⟪↑⟫≡F'⟪↑⟫ e = doubleCompP' (sym (congS₂ (λ x y → 𝓒 .cat [ F .functor ⟅ x ⟆ , F .functor ⟅ y ⟆ ]) (reinterp-trivial (Q .dom e)) (reinterp-trivial (Q .cod e)))) _ _ (symP (F⟪η⟫≡F⟪↑⟫-Hom F {e = e})) (F⟪η⟫≡F'⟪η⟫-Hom e) (F⟪η⟫≡F⟪↑⟫-Hom F' {e = e})
+      bruh : ∀ e → F⟪-⟫≡F'⟪-⟫ (↑ₑ e)
+      bruh e = cong-transport-PathP {!!} (F⟪↑⟫≡F'⟪↑⟫ e)
+      foo : ∀ e
+        → congS₂ (λ x y → 𝓒 .cat [ x , y ]) (aoo (Q .dom e)) (aoo (Q .cod e))
+        ≡ (sym
+        (congS₂ (λ x y → 𝓒 .cat [ F .functor ⟅ x ⟆ , F .functor ⟅ y ⟆ ]) (reinterp-trivial (Q .dom e)) (reinterp-trivial (Q .cod e))))
+        ∙∙ (F⟪ı⟫≡G⟪ı⟫-Hom-lem F F' η agree-on-η)
+        ∙∙ (congS₂ (λ x y → 𝓒 .cat [ F' .functor ⟅ x ⟆ , F' .functor ⟅ y ⟆ ]) (reinterp-trivial (Q .dom e)) (reinterp-trivial (Q .cod e)))
+      foo e = sym (transport (PathP≡doubleCompPathˡ ((congS₂ (λ x y → 𝓒 .cat [ F .functor ⟅ x ⟆ , F .functor ⟅ y ⟆ ]) (reinterp-trivial (Q .dom e)) (reinterp-trivial (Q .cod e)))) ((F⟪ı⟫≡G⟪ı⟫-Hom-lem F F' η agree-on-η)) (congS₂ (λ x y → 𝓒 .cat [ x , y ]) (aoo (Q .dom e)) (aoo (Q .cod e))) ((congS₂ (λ x y → 𝓒 .cat [ F' .functor ⟅ x ⟆ , F' .functor ⟅ y ⟆ ]) (reinterp-trivial (Q .dom e)) (reinterp-trivial (Q .cod e))))) {!!})
+      --bruh e = cong-transport-PathP {!!} (symP (F⟪η⟫≡F⟪↑⟫-Hom F {e = e}) ⋆⋆ F⟪ı⟫≡G⟪ı⟫-Hom {Q = Q} {𝓒 = FreeCartesianCategory} {𝓓 = 𝓒} F F' η agree-on-η {e = e} ⋆⋆ F⟪η⟫≡F⟪↑⟫-Hom F' {e = e})
+      --bruh e = cong-transport-PathP {!!} (symP (F⟪η⟫≡F⟪↑⟫-Hom F {e = e}) ⋆⋆ F⟪ı⟫≡G⟪ı⟫-Hom {Q = Q} {𝓒 = FreeCartesianCategory} {𝓓 = 𝓒} F F' η agree-on-η {e = e} ⋆⋆ F⟪η⟫≡F⟪↑⟫-Hom F' {e = e})
+      --aom : ∀{t t'} → (f : FreeCartesianCategory .cat [ t , t' ]) → F⟪-⟫≡F'⟪-⟫ f
+      --aom = elimExpProp {P = F⟪-⟫≡F'⟪-⟫} isProp-aom-type (λ e → {!F⟪ı⟫≡G⟪ı⟫-Hom F F' η agree-on-η {e = e}!}) {!!} {!!} {!!} {!!} {!!} {!!}
+      --aom = elimExpProp {P = F⟪-⟫≡F'⟪-⟫} isProp-aom-type
+      --  --(λ e → toPathP (congS (λ x → {!!}) (fromPathP (symP (F⟪η⟫≡F⟪↑⟫-Hom F) ⋆⋆ F⟪ı⟫≡G⟪ı⟫-Hom {Q = Q} {𝓒 = FreeCartesianCategory} {𝓓 = 𝓒} F F' η agree-on-η {e = e} ⋆⋆ F⟪η⟫≡F⟪↑⟫-Hom F'))))
+      --  (λ e → cong-transport-PathP {!!} (symP (F⟪η⟫≡F⟪↑⟫-Hom F {e = e}) ⋆⋆ F⟪ı⟫≡G⟪ı⟫-Hom {Q = Q} {𝓒 = FreeCartesianCategory} {𝓓 = 𝓒} F F' η agree-on-η {e = e} ⋆⋆ F⟪η⟫≡F⟪↑⟫-Hom F' {e = e}))
+      --  --(fromPathP (symP (F⟪η⟫≡F⟪↑⟫-Hom F) ⋆⋆ F⟪ı⟫≡G⟪ı⟫-Hom {Q = Q} {𝓒 = FreeCartesianCategory} {𝓓 = 𝓒} F F' η agree-on-η {e = e} ⋆⋆ F⟪η⟫≡F⟪↑⟫-Hom F')))
+      --  {!!}
+      --  {!!}
+      --  {!!}
+      --  {!!}
+      --  {!!}
+      --  {!!}
+      --  where
+      --  -- prove a proposition by induction over the FreeCartesianCategory
+      --  -- so we can ignore higher path coherences in the FreeCartesianCategory
+      --  elimExpProp : ∀{P : ∀{t t'} → FreeCartesianCategory .cat [ t , t' ] → Type ℓ}
+      --    → (∀{t t'} f → isProp (P {t} {t'} f))
+      --    → (∀ e → P (↑ₑ e))
+      --    → (∀{A} → P {A} idₑ)
+      --    → (∀{t t' t'' f f'} → P {t} {t'} f → P {t'} {t''} f' → P (f ⋆ₑ f'))
+      --    → (∀{A B} → P (π₁ₑ {A} {B}))
+      --    → (∀{A B} → P (π₂ₑ {A} {B}))
+      --    → (∀{A B C f g} → P {C} {A} (f) → P {C} {B} (g) → P ⟨ f ,ₑ g ⟩)
+      --    → (∀{t} → P (!ₑ {t}))
+      --    → ∀{t t'} f → P {t} {t'} f
+      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (↑ₑ e) = P↑ e
+      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! idₑ = Pid
+      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (f ⋆ₑ f') = P⋆ {!!} {!!}
+      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (⋆ₑIdL f i) = {!!}
+      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (⋆ₑIdR f i) = {!!}
+      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (⋆ₑAssoc f f' f'' i) = {!!}
+      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (isSetEdgeExpr f f' p q i j) = {!!}
+      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! π₁ₑ = Pπ₁
+      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! π₂ₑ = Pπ₂
+      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! ⟨ f ,ₑ f₁ ⟩ = {!!}
+      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! !ₑ = P!
+      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (×̬β₁ i) = {!!}
+      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (×̬β₂ i) = {!!}
+      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (×̬η i) = {!!}
+      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (⊤̬η i) = {!!}
       -- no need to show F ≡ F' as StrictCartesianFunctor s
       -- (and in fact I think we'd need that isSet (𝓒 .ob))
       ind : F .functor ≡ F' .functor
-      ind = Functor≡ aoo aom
+      ind = Functor≡ aoo {!!} --aom
