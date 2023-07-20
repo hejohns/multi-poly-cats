@@ -67,52 +67,59 @@ module _ (Q : ProductQuiver ℓq ℓq') where
   reinterp-trivial (↑̬ B) = refl
   reinterp-trivial (B ×̬ C) i = reinterp-trivial B i ×̬ reinterp-trivial C i
   reinterp-trivial ⊤̬  = refl
+  reinterp-trivial' : _
+  reinterp-trivial' = funExt reinterp-trivial
   η : Interp Q FreeCartesianCategory
   η .I-ob = ↑̬
   η .I-hom e = transport⁻ inside-EdgeExpr (↑ₑ e)
     where
     inside-EdgeExpr : ∀{A B} → EdgeExpr[ interpret-objects Q FreeCartesianCategory ↑̬ A , interpret-objects Q FreeCartesianCategory ↑̬ B ] ≡ EdgeExpr[ A , B ]
-    inside-EdgeExpr {A} {B} = congS₂ (λ x y → EdgeExpr[ x , y ]) (reinterp-trivial A) (reinterp-trivial B)
+    inside-EdgeExpr {A} {B} = congS (λ x → EdgeExpr[ x A , x B ]) reinterp-trivial'
   module _ {𝓒 : BinaryCartesianCategory ℓc ℓc'}(F : StrictCartesianFunctor FreeCartesianCategory 𝓒) where
     --a : {e : Q .edge} → 𝓒 .cat [ F .functor ⟅ interpret-objects Q FreeCartesianCategory ↑̬ (Q .dom e) ⟆ , F .functor ⟅ interpret-objects Q FreeCartesianCategory ↑̬ (Q .cod e) ⟆ ]
     --a {e = e} = F .functor ⟪ η .I-hom e ⟫
     --b : {e : Q .edge} → 𝓒 .cat [ F .functor ⟅ Q .dom e ⟆ , F .functor ⟅ Q .cod e ⟆ ]
     --b {e = e} = F .functor ⟪ ↑ₑ e ⟫
-    F⟪η⟫≡F⟪↑⟫-Hom : {e : Q .edge} → PathP (λ i → congS₂ (λ x y → 𝓒 .cat [ F .functor ⟅ x ⟆ , F .functor ⟅ y ⟆ ]) (reinterp-trivial (Q .dom e)) (reinterp-trivial (Q .cod e)) i) (F .functor ⟪ η .I-hom e ⟫) (F .functor ⟪ ↑ₑ e ⟫)
-    F⟪η⟫≡F⟪↑⟫-Hom {e = e} = congP (λ i a → F .functor ⟪ a ⟫) (toPathP⁻ refl)
+    F⟪η⟫ : ∀ e → _
+    F⟪η⟫ e = F .functor ⟪ η .I-hom e ⟫
+    F⟪↑⟫ : ∀ e → _
+    F⟪↑⟫ e = F .functor ⟪ ↑ₑ e ⟫
+    F⟪η⟫≡F⟪↑⟫-Hom : PathP (λ i → congS (λ x → ∀ e → 𝓒 .cat [ F .functor ⟅ x (Q .dom e) ⟆ , F .functor ⟅ x (Q .cod e) ⟆ ]) reinterp-trivial' i) F⟪η⟫ F⟪↑⟫
+    F⟪η⟫≡F⟪↑⟫-Hom = funExt λ e → congP (λ i a → F .functor ⟪ a ⟫) (toPathP⁻ refl)
   module _ {𝓒 : BinaryCartesianCategory ℓc ℓc'}(F F' : StrictCartesianFunctor FreeCartesianCategory 𝓒) where
     module _ (agree-on-η : F ∘I η ≡ F' ∘I η) where
       open import Cubical.Foundations.HLevels
       open import Cubical.Foundations.Path
       open import Cubical.Foundations.Isomorphism
       open Iso
+      ttt : ∀ t → F .functor ⟅ interpret-objects Q FreeCartesianCategory (η .I-ob) t ⟆ ≡ F .functor ⟅ t ⟆
+      ttt t = congS (λ x → F .functor ⟅ x t ⟆) reinterp-trivial'
       aoo : ∀ t → F .functor ⟅ t ⟆ ≡ F' .functor ⟅ t ⟆
       aoo (↑̬ A) i = agree-on-η i .I-ob A
       aoo (A ×̬ B) = F .preserves-× ∙∙ inside-× 𝓒 (aoo A) (aoo B) ∙∙ sym (F' .preserves-×)
       -- F .preserves-× ∙ inside-× 𝓒 (aoo A) (aoo B) ∙ sym (F' .preserves-×)
       aoo ⊤̬ = F .preserves-⊤ ∙ sym (F' .preserves-⊤)
-      barbar : ∀ t → aoo t ≡ reinterp-trivial t
-      barbar = ?
+      aoo' = funExt aoo
       aom-type : ∀{t t'} → (f : FreeCartesianCategory .cat [ t , t' ]) → Type _
-      aom-type {t} {t'} f = PathP (λ i → congS₂ (λ x y → 𝓒 .cat [ x , y ]) (aoo t) (aoo t') i) (F .functor .F-hom f) (F' .functor .F-hom f)
+      aom-type {t} {t'} f = PathP (λ i → congS (λ x → 𝓒 .cat [ x t , x t' ]) aoo' i) (F .functor .F-hom f) (F' .functor .F-hom f)
       -- mnemonic
       F⟪-⟫≡F'⟪-⟫ = aom-type
       -- c/p Cubical.Categories.Constructions.Free.Category proof
       isProp-aom-type : ∀{t t'} → (f : FreeCartesianCategory .cat [ t , t' ]) → isProp (F⟪-⟫≡F'⟪-⟫ f)
       isProp-aom-type f = isPropRetract fromPathP toPathP (PathPIsoPath _ _ _ .leftInv) (𝓒 .cat .isSetHom _ _)
-      F⟪η⟫≡F'⟪η⟫-Hom : ∀ e → _
-      F⟪η⟫≡F'⟪η⟫-Hom e = F⟪ı⟫≡G⟪ı⟫-Hom F F' η agree-on-η {e = e}
-      F⟪↑⟫≡F'⟪↑⟫ : ∀ e → _
-      F⟪↑⟫≡F'⟪↑⟫ e = doubleCompP' (sym (congS₂ (λ x y → 𝓒 .cat [ F .functor ⟅ x ⟆ , F .functor ⟅ y ⟆ ]) (reinterp-trivial (Q .dom e)) (reinterp-trivial (Q .cod e)))) _ _ (symP (F⟪η⟫≡F⟪↑⟫-Hom F {e = e})) (F⟪η⟫≡F'⟪η⟫-Hom e) (F⟪η⟫≡F⟪↑⟫-Hom F' {e = e})
-      bruh : ∀ e → F⟪-⟫≡F'⟪-⟫ (↑ₑ e)
-      bruh e = cong-transport-PathP {!!} (F⟪↑⟫≡F'⟪↑⟫ e)
-      foo : ∀ e
-        → congS₂ (λ x y → 𝓒 .cat [ x , y ]) (aoo (Q .dom e)) (aoo (Q .cod e))
-        ≡ (sym
-        (congS₂ (λ x y → 𝓒 .cat [ F .functor ⟅ x ⟆ , F .functor ⟅ y ⟆ ]) (reinterp-trivial (Q .dom e)) (reinterp-trivial (Q .cod e))))
-        ∙∙ (F⟪ı⟫≡G⟪ı⟫-Hom-lem F F' η agree-on-η)
-        ∙∙ (congS₂ (λ x y → 𝓒 .cat [ F' .functor ⟅ x ⟆ , F' .functor ⟅ y ⟆ ]) (reinterp-trivial (Q .dom e)) (reinterp-trivial (Q .cod e)))
-      foo e = sym (transport (PathP≡doubleCompPathˡ ((congS₂ (λ x y → 𝓒 .cat [ F .functor ⟅ x ⟆ , F .functor ⟅ y ⟆ ]) (reinterp-trivial (Q .dom e)) (reinterp-trivial (Q .cod e)))) ((F⟪ı⟫≡G⟪ı⟫-Hom-lem F F' η agree-on-η)) (congS₂ (λ x y → 𝓒 .cat [ x , y ]) (aoo (Q .dom e)) (aoo (Q .cod e))) ((congS₂ (λ x y → 𝓒 .cat [ F' .functor ⟅ x ⟆ , F' .functor ⟅ y ⟆ ]) (reinterp-trivial (Q .dom e)) (reinterp-trivial (Q .cod e))))) {!!})
+      F⟪η⟫≡F'⟪η⟫-Hom : _
+      F⟪η⟫≡F'⟪η⟫-Hom = F⟪ı⟫≡G⟪ı⟫-Hom F F' η agree-on-η
+      F⟪↑⟫≡F'⟪↑⟫ : _
+      F⟪↑⟫≡F'⟪↑⟫ = symP-fromGoal (F⟪η⟫≡F⟪↑⟫-Hom F) ⋆⋆ F⟪η⟫≡F'⟪η⟫-Hom ⋆⋆ F⟪η⟫≡F⟪↑⟫-Hom F'
+      --bruh : ∀ e → F⟪-⟫≡F'⟪-⟫ (↑ₑ e)
+      --bruh e = cong-transport-PathP {!!} (F⟪↑⟫≡F'⟪↑⟫ e)
+      --foo : ∀ e
+      --  → congS₂ (λ x y → 𝓒 .cat [ x , y ]) (aoo (Q .dom e)) (aoo (Q .cod e))
+      --  ≡ (sym
+      --  (congS₂ (λ x y → 𝓒 .cat [ F .functor ⟅ x ⟆ , F .functor ⟅ y ⟆ ]) (reinterp-trivial (Q .dom e)) (reinterp-trivial (Q .cod e))))
+      --  ∙∙ (F⟪ı⟫≡G⟪ı⟫-Hom-lem F F' η agree-on-η)
+      --  ∙∙ (congS₂ (λ x y → 𝓒 .cat [ F' .functor ⟅ x ⟆ , F' .functor ⟅ y ⟆ ]) (reinterp-trivial (Q .dom e)) (reinterp-trivial (Q .cod e)))
+      --foo e = sym (transport (PathP≡doubleCompPathˡ ((congS₂ (λ x y → 𝓒 .cat [ F .functor ⟅ x ⟆ , F .functor ⟅ y ⟆ ]) (reinterp-trivial (Q .dom e)) (reinterp-trivial (Q .cod e)))) ((F⟪ı⟫≡G⟪ı⟫-Hom-lem F F' η agree-on-η)) (congS₂ (λ x y → 𝓒 .cat [ x , y ]) (aoo (Q .dom e)) (aoo (Q .cod e))) ((congS₂ (λ x y → 𝓒 .cat [ F' .functor ⟅ x ⟆ , F' .functor ⟅ y ⟆ ]) (reinterp-trivial (Q .dom e)) (reinterp-trivial (Q .cod e))))) {!!})
       --bruh e = cong-transport-PathP {!!} (symP (F⟪η⟫≡F⟪↑⟫-Hom F {e = e}) ⋆⋆ F⟪ı⟫≡G⟪ı⟫-Hom {Q = Q} {𝓒 = FreeCartesianCategory} {𝓓 = 𝓒} F F' η agree-on-η {e = e} ⋆⋆ F⟪η⟫≡F⟪↑⟫-Hom F' {e = e})
       --bruh e = cong-transport-PathP {!!} (symP (F⟪η⟫≡F⟪↑⟫-Hom F {e = e}) ⋆⋆ F⟪ı⟫≡G⟪ı⟫-Hom {Q = Q} {𝓒 = FreeCartesianCategory} {𝓓 = 𝓒} F F' η agree-on-η {e = e} ⋆⋆ F⟪η⟫≡F⟪↑⟫-Hom F' {e = e})
       --aom : ∀{t t'} → (f : FreeCartesianCategory .cat [ t , t' ]) → F⟪-⟫≡F'⟪-⟫ f

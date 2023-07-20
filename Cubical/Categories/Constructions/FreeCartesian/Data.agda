@@ -62,33 +62,24 @@ module Data where -- generating data
       ≡ 𝓓 .cat [
         interpλF⟅ı⟆ (Q .dom e) ,
         interpλF⟅ı⟆ (Q .cod e) ]
-    F⟅interp⟆≡interpλF⟅ı⟆-inside-hom {e = e} = congS₂ (λ x y → 𝓓 .cat [ x , y ]) (F⟅interp⟆≡interpλF⟅ı⟆ (Q .dom e)) (F⟅interp⟆≡interpλF⟅ı⟆ (Q .cod e))
+    F⟅interp⟆≡interpλF⟅ı⟆-inside-hom {e = e} = congS (λ x → 𝓓 .cat [ x (Q .dom e) , x (Q .cod e) ]) (funExt F⟅interp⟆≡interpλF⟅ı⟆)
     -- extend interpretation along functor
     _∘I_ : Interp Q 𝓓
     _∘I_ .I-ob = F⟅ı⟆
-    _∘I_ .I-hom e = transport F⟅interp⟆≡interpλF⟅ı⟆-inside-hom (F⟪ı⟫ e) -- this transport causes so much pain
-    -- by definition of _∘I_ .I-hom
-    aaa : (e : Q .edge) →
-            Hom[ 𝓓 .cat ,
-            F .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) (Q .dom e) ⟆ ]
-            (F .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) (Q .cod e) ⟆)
-    aaa = F⟪ı⟫
-    bbb : (e : Q .edge) →
-            𝓓 .cat [ interpret-objects Q 𝓓 (_∘I_ .I-ob) (Q .dom e) ,
-            interpret-objects Q 𝓓 (_∘I_ .I-ob) (Q .cod e) ]
-    bbb = _∘I_ .I-hom
-    ccc : ((e : Q .edge)
+    _∘I_ .I-hom e = transport F⟅interp⟆≡interpλF⟅ı⟆-inside-hom (F⟪ı⟫ e)
+    F⟅interp⟆≡interpλF⟅ı⟆-inside-hom' : ((e : Q .edge)
         → 𝓓 .cat [
           F⟅interp⟆ (Q .dom e) ,
           F⟅interp⟆ (Q .cod e) ])
       ≡ ((e : Q .edge) → 𝓓 .cat [
           interpret-objects Q 𝓓 (_∘I_ .I-ob) (Q .dom e) ,
           interpret-objects Q 𝓓 (_∘I_ .I-ob) (Q .cod e) ])
-    ccc = congS (λ x → ((e : Q .edge) → 𝓓 .cat [ x (Q .dom e) , x (Q .cod e) ])) (funExt F⟅interp⟆≡interpλF⟅ı⟆)
-    ddd : Type (ℓ-max ℓq' ℓd')
-    ddd = ((e : Q .edge) → 𝓓 .cat [ interpret-objects Q 𝓓 (_∘I_ .I-ob) (Q .dom e) , interpret-objects Q 𝓓 (_∘I_ .I-ob) (Q .cod e) ])
-    F⟪ı⟫≡F∘Iı-Hom : PathP (λ i → {!!} i) F⟪ı⟫ (_∘I_ .I-hom)
-    F⟪ı⟫≡F∘Iı-Hom = {!!} --funExt (λ t → toPathP refl)
+    F⟅interp⟆≡interpλF⟅ı⟆-inside-hom' = congS (λ x → ((e : Q .edge) → 𝓓 .cat [ x (Q .dom e) , x (Q .cod e) ])) (funExt F⟅interp⟆≡interpλF⟅ı⟆)
+    -- by definition of _∘I_ .I-hom
+    F⟪ı⟫≡F∘Iı-Hom : (e : Q .edge) → PathP (λ i → F⟅interp⟆≡interpλF⟅ı⟆-inside-hom {e = e} i) (F⟪ı⟫ e) (_∘I_ .I-hom e)
+    F⟪ı⟫≡F∘Iı-Hom e = toPathP refl
+    F⟪ı⟫≡F∘Iı-Hom' : PathP (λ i → F⟅interp⟆≡interpλF⟅ı⟆-inside-hom' i) F⟪ı⟫ (_∘I_ .I-hom)
+    F⟪ı⟫≡F∘Iı-Hom' = funExt F⟪ı⟫≡F∘Iı-Hom
   module _ {Q : ProductQuiver ℓq ℓq'}{𝓒 : BinaryCartesianCategory ℓc ℓc'}{𝓓 : BinaryCartesianCategory ℓd ℓd'}(F G : StrictCartesianFunctor 𝓒 𝓓)(ı : Interp Q 𝓒) where
     module _ (p : F ∘I ı ≡ G ∘I ı) where
       F∘Iı≡G∘Iı-Ob : (F ∘I ı) .I-ob ≡ (G ∘I ı) .I-ob
@@ -112,9 +103,7 @@ module Data where -- generating data
       F∘Iı≡G∘Iı-Hom = congP (λ i x → x .I-hom) p
       F∘Iı≡G∘Iı-Hom' : (e : Q .edge) → _
       F∘Iı≡G∘Iı-Hom' e = congP (λ i x → x e) F∘Iı≡G∘Iı-Hom
-      --F⟪ı⟫≡G⟪ı⟫-Hom-lem : {e : Q .edge}
-      --  → 𝓓 .cat [ F .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) (Q .dom e) ⟆ , F .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) (Q .cod e) ⟆ ] ≡ 𝓓 .cat [ G .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) (Q .dom e) ⟆ , G .functor ⟅ interpret-objects Q 𝓒 (ı .I-ob) (Q .cod e) ⟆ ]
-      --F⟪ı⟫≡G⟪ı⟫-Hom-lem {e = e} = F⟅interp⟆≡interpλF⟅ı⟆-Ob-inside-hom F ı ∙∙ F∘Iı≡G∘Iı-Hom-lem ∙∙ sym (F⟅interp⟆≡interpλF⟅ı⟆-Ob-inside-hom G ı)
-      F⟪ı⟫≡G⟪ı⟫-Hom-lem = {!!}
-      F⟪ı⟫≡G⟪ı⟫-Hom : PathP (λ i → {!!} i) (F⟪ı⟫ F ı) (F⟪ı⟫ G ı)
-      F⟪ı⟫≡G⟪ı⟫-Hom = F⟪ı⟫≡F∘Iı-Hom F ı ⋆⋆ F∘Iı≡G∘Iı-Hom ⋆⋆ symP (F⟪ı⟫≡F∘Iı-Hom G ı)
+      F⟪ı⟫≡G⟪ı⟫-Hom-lem : _
+      F⟪ı⟫≡G⟪ı⟫-Hom-lem = F⟅interp⟆≡interpλF⟅ı⟆-inside-hom' F ı ∙∙ F∘Iı≡G∘Iı-Hom-lem ∙∙ sym (F⟅interp⟆≡interpλF⟅ı⟆-inside-hom' G ı)
+      F⟪ı⟫≡G⟪ı⟫-Hom : PathP (λ i → F⟪ı⟫≡G⟪ı⟫-Hom-lem i) (F⟪ı⟫ F ı) (F⟪ı⟫ G ı)
+      F⟪ı⟫≡G⟪ı⟫-Hom = F⟪ı⟫≡F∘Iı-Hom' F ı ⋆⋆ F∘Iı≡G∘Iı-Hom ⋆⋆ symP (F⟪ı⟫≡F∘Iı-Hom' G ı)
