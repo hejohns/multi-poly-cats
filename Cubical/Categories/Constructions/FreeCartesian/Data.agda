@@ -102,7 +102,7 @@ module Data where -- generating data
           ((G ∘I ı) .I-hom)
       F∘Iı≡G∘Iı-Hom = congP (λ i x → x .I-hom) p
       F∘Iı≡G∘Iı-Hom' : (e : Q .edge) → _
-      F∘Iı≡G∘Iı-Hom' e = congP (λ i x → x e) F∘Iı≡G∘Iı-Hom
+      F∘Iı≡G∘Iı-Hom' = funExt⁻ F∘Iı≡G∘Iı-Hom
       F⟪ı⟫≡G⟪ı⟫-Hom-lem : _
       F⟪ı⟫≡G⟪ı⟫-Hom-lem = F⟅interp⟆≡interpλF⟅ı⟆-inside-hom' F ı ∙∙ F∘Iı≡G∘Iı-Hom-lem ∙∙ sym (F⟅interp⟆≡interpλF⟅ı⟆-inside-hom' G ı)
       F⟪ı⟫≡G⟪ı⟫-Hom : PathP (λ i → F⟪ı⟫≡G⟪ı⟫-Hom-lem i) (F⟪ı⟫ F ı) (F⟪ı⟫ G ı)

@@ -84,7 +84,9 @@ module _ (Q : ProductQuiver ℓq ℓq') where
     F⟪η⟫ e = F .functor ⟪ η .I-hom e ⟫
     F⟪↑⟫ : ∀ e → _
     F⟪↑⟫ e = F .functor ⟪ ↑ₑ e ⟫
-    F⟪η⟫≡F⟪↑⟫-Hom : PathP (λ i → congS (λ x → ∀ e → 𝓒 .cat [ F .functor ⟅ x (Q .dom e) ⟆ , F .functor ⟅ x (Q .cod e) ⟆ ]) reinterp-trivial' i) F⟪η⟫ F⟪↑⟫
+    F⟪η⟫≡F⟪↑⟫-Hom-lem : _
+    F⟪η⟫≡F⟪↑⟫-Hom-lem = congS (λ x → ∀ e → 𝓒 .cat [ F .functor ⟅ x (Q .dom e) ⟆ , F .functor ⟅ x (Q .cod e) ⟆ ]) reinterp-trivial'
+    F⟪η⟫≡F⟪↑⟫-Hom : PathP (λ i → F⟪η⟫≡F⟪↑⟫-Hom-lem i) F⟪η⟫ F⟪↑⟫
     F⟪η⟫≡F⟪↑⟫-Hom = funExt λ e → congP (λ i a → F .functor ⟪ a ⟫) (toPathP⁻ refl)
   module _ {𝓒 : BinaryCartesianCategory ℓc ℓc'}(F F' : StrictCartesianFunctor FreeCartesianCategory 𝓒) where
     module _ (agree-on-η : F ∘I η ≡ F' ∘I η) where
@@ -109,10 +111,48 @@ module _ (Q : ProductQuiver ℓq ℓq') where
       isProp-aom-type f = isPropRetract fromPathP toPathP (PathPIsoPath _ _ _ .leftInv) (𝓒 .cat .isSetHom _ _)
       F⟪η⟫≡F'⟪η⟫-Hom : _
       F⟪η⟫≡F'⟪η⟫-Hom = F⟪ı⟫≡G⟪ı⟫-Hom F F' η agree-on-η
-      F⟪↑⟫≡F'⟪↑⟫ : _
-      F⟪↑⟫≡F'⟪↑⟫ = symP-fromGoal (F⟪η⟫≡F⟪↑⟫-Hom F) ⋆⋆ F⟪η⟫≡F'⟪η⟫-Hom ⋆⋆ F⟪η⟫≡F⟪↑⟫-Hom F'
-      --bruh : ∀ e → F⟪-⟫≡F'⟪-⟫ (↑ₑ e)
-      --bruh e = cong-transport-PathP {!!} (F⟪↑⟫≡F'⟪↑⟫ e)
+      F⟪↑⟫≡F'⟪↑⟫ : PathP
+                     (λ i →
+                        ((λ i₁ → F⟪η⟫≡F⟪↑⟫-Hom-lem F (~ i₁)) ∙∙
+                         (λ i₁ → F⟪ı⟫≡G⟪ı⟫-Hom-lem F F' η agree-on-η i₁) ∙∙
+                         (λ i₁ → F⟪η⟫≡F⟪↑⟫-Hom-lem F' i₁))
+                        i)
+                     (F⟪↑⟫ F) (F⟪↑⟫ F')
+      F⟪↑⟫≡F'⟪↑⟫ = doubleCompP'
+        (λ i →
+            (e : Q .edge) →
+            Hom[ 𝓒 .cat , F-ob (F .functor) (reinterp-trivial (Q .dom e) (~ i))
+            ]
+            (F-ob (F .functor) (reinterp-trivial (Q .cod e) (~ i))))
+        (λ i →
+            hcomp
+            (doubleComp-faces
+             (λ i₁ →
+                (e : Q .edge) →
+                Hom[ 𝓒 .cat , F⟅interp⟆≡interpλF⟅ı⟆ F η (Q .dom e) i₁ ]
+                (F⟅interp⟆≡interpλF⟅ı⟆ F η (Q .cod e) i₁))
+             (λ i₁ →
+                (e : Q .edge) →
+                Hom[ 𝓒 .cat , F⟅interp⟆≡interpλF⟅ı⟆ F' η (Q .dom e) (~ i₁) ]
+                (F⟅interp⟆≡interpλF⟅ı⟆ F' η (Q .cod e) (~ i₁)))
+             i)
+            ((e : Q .edge) →
+             Hom[ 𝓒 .cat , interpret-objects Q 𝓒 (agree-on-η i .I-ob) (Q .dom e)
+             ]
+             (interpret-objects Q 𝓒 (agree-on-η i .I-ob) (Q .cod e))))
+        (λ i →
+            (e : Q .edge) →
+            Hom[ 𝓒 .cat , F-ob (F' .functor) (reinterp-trivial (Q .dom e) i) ]
+            (F-ob (F' .functor) (reinterp-trivial (Q .cod e) i)))
+        (symP-fromGoal (F⟪η⟫≡F⟪↑⟫-Hom F)) (F⟪η⟫≡F'⟪η⟫-Hom) (F⟪η⟫≡F⟪↑⟫-Hom F')
+      F⟪↑⟫≡F'⟪↑⟫' : _
+      F⟪↑⟫≡F'⟪↑⟫' = cong-transport-PathP (symP (transport (PathP≡doubleCompPathˡ (F⟪η⟫≡F⟪↑⟫-Hom-lem F) (F⟪ı⟫≡G⟪ı⟫-Hom-lem F F' η agree-on-η) {!!} (F⟪η⟫≡F⟪↑⟫-Hom-lem F')) {!!})) (symP-fromGoal (F⟪η⟫≡F⟪↑⟫-Hom F) ⋆⋆ F⟪η⟫≡F'⟪η⟫-Hom ⋆⋆ F⟪η⟫≡F⟪↑⟫-Hom F')
+      F⟪↑⟫≡F'⟪↑⟫'' : (e : Q .edge) → {!!}
+      -- why can't I get congP to work??
+      F⟪↑⟫≡F'⟪↑⟫'' = funExt⁻ {!!}
+      bruh : ∀ e → F⟪-⟫≡F'⟪-⟫ (↑ₑ e)
+      --bruh e = cong-transport-PathP {!!} (F⟪↑⟫≡F'⟪↑⟫)
+      bruh e = cong-transport-PathP {!!} {!!}
       --foo : ∀ e
       --  → congS₂ (λ x y → 𝓒 .cat [ x , y ]) (aoo (Q .dom e)) (aoo (Q .cod e))
       --  ≡ (sym
