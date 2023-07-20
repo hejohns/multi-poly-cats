@@ -118,41 +118,24 @@ module _ (Q : ProductQuiver ℓq ℓq') where
                          (λ i₁ → F⟪η⟫≡F⟪↑⟫-Hom-lem F' i₁))
                         i)
                      (F⟪↑⟫ F) (F⟪↑⟫ F')
-      F⟪↑⟫≡F'⟪↑⟫ = doubleCompP'
-        (λ i →
-            (e : Q .edge) →
-            Hom[ 𝓒 .cat , F-ob (F .functor) (reinterp-trivial (Q .dom e) (~ i))
-            ]
-            (F-ob (F .functor) (reinterp-trivial (Q .cod e) (~ i))))
-        (λ i →
-            hcomp
-            (doubleComp-faces
-             (λ i₁ →
-                (e : Q .edge) →
-                Hom[ 𝓒 .cat , F⟅interp⟆≡interpλF⟅ı⟆ F η (Q .dom e) i₁ ]
-                (F⟅interp⟆≡interpλF⟅ı⟆ F η (Q .cod e) i₁))
-             (λ i₁ →
-                (e : Q .edge) →
-                Hom[ 𝓒 .cat , F⟅interp⟆≡interpλF⟅ı⟆ F' η (Q .dom e) (~ i₁) ]
-                (F⟅interp⟆≡interpλF⟅ı⟆ F' η (Q .cod e) (~ i₁)))
-             i)
-            ((e : Q .edge) →
-             Hom[ 𝓒 .cat , interpret-objects Q 𝓒 (agree-on-η i .I-ob) (Q .dom e)
-             ]
-             (interpret-objects Q 𝓒 (agree-on-η i .I-ob) (Q .cod e))))
-        (λ i →
-            (e : Q .edge) →
-            Hom[ 𝓒 .cat , F-ob (F' .functor) (reinterp-trivial (Q .dom e) i) ]
-            (F-ob (F' .functor) (reinterp-trivial (Q .cod e) i)))
+      F⟪↑⟫≡F'⟪↑⟫ = doubleCompP' _ _ _
         (symP-fromGoal (F⟪η⟫≡F⟪↑⟫-Hom F)) (F⟪η⟫≡F'⟪η⟫-Hom) (F⟪η⟫≡F⟪↑⟫-Hom F')
       F⟪↑⟫≡F'⟪↑⟫' : _
       F⟪↑⟫≡F'⟪↑⟫' = cong-transport-PathP (symP (transport (PathP≡doubleCompPathˡ (F⟪η⟫≡F⟪↑⟫-Hom-lem F) (F⟪ı⟫≡G⟪ı⟫-Hom-lem F F' η agree-on-η) {!!} (F⟪η⟫≡F⟪↑⟫-Hom-lem F')) {!!})) (symP-fromGoal (F⟪η⟫≡F⟪↑⟫-Hom F) ⋆⋆ F⟪η⟫≡F'⟪η⟫-Hom ⋆⋆ F⟪η⟫≡F⟪↑⟫-Hom F')
+      abcbc : PathP
+                (λ i →
+                   ((λ i₁ → F⟪η⟫≡F⟪↑⟫-Hom-lem F (~ i₁)) ∙∙
+                    (λ i₁ → F⟪ı⟫≡G⟪ı⟫-Hom-lem F F' η agree-on-η i₁) ∙∙
+                    (λ i₁ → F⟪η⟫≡F⟪↑⟫-Hom-lem F' i₁))
+                   i)
+                (F⟪↑⟫ F) (F⟪↑⟫ F')
+      abcbc =  (symP-fromGoal (F⟪η⟫≡F⟪↑⟫-Hom F) ⋆⋆ F⟪η⟫≡F'⟪η⟫-Hom ⋆⋆ F⟪η⟫≡F⟪↑⟫-Hom F')
       F⟪↑⟫≡F'⟪↑⟫'' : (e : Q .edge) → {!!}
       -- why can't I get congP to work??
       F⟪↑⟫≡F'⟪↑⟫'' = funExt⁻ {!!}
-      bruh : ∀ e → F⟪-⟫≡F'⟪-⟫ (↑ₑ e)
+      aom-base-case : ∀ e → F⟪-⟫≡F'⟪-⟫ (↑ₑ e)
       --bruh e = cong-transport-PathP {!!} (F⟪↑⟫≡F'⟪↑⟫)
-      bruh e = cong-transport-PathP {!!} {!!}
+      aom-base-case e = {!!}
       --foo : ∀ e
       --  → congS₂ (λ x y → 𝓒 .cat [ x , y ]) (aoo (Q .dom e)) (aoo (Q .cod e))
       --  ≡ (sym
@@ -162,46 +145,47 @@ module _ (Q : ProductQuiver ℓq ℓq') where
       --foo e = sym (transport (PathP≡doubleCompPathˡ ((congS₂ (λ x y → 𝓒 .cat [ F .functor ⟅ x ⟆ , F .functor ⟅ y ⟆ ]) (reinterp-trivial (Q .dom e)) (reinterp-trivial (Q .cod e)))) ((F⟪ı⟫≡G⟪ı⟫-Hom-lem F F' η agree-on-η)) (congS₂ (λ x y → 𝓒 .cat [ x , y ]) (aoo (Q .dom e)) (aoo (Q .cod e))) ((congS₂ (λ x y → 𝓒 .cat [ F' .functor ⟅ x ⟆ , F' .functor ⟅ y ⟆ ]) (reinterp-trivial (Q .dom e)) (reinterp-trivial (Q .cod e))))) {!!})
       --bruh e = cong-transport-PathP {!!} (symP (F⟪η⟫≡F⟪↑⟫-Hom F {e = e}) ⋆⋆ F⟪ı⟫≡G⟪ı⟫-Hom {Q = Q} {𝓒 = FreeCartesianCategory} {𝓓 = 𝓒} F F' η agree-on-η {e = e} ⋆⋆ F⟪η⟫≡F⟪↑⟫-Hom F' {e = e})
       --bruh e = cong-transport-PathP {!!} (symP (F⟪η⟫≡F⟪↑⟫-Hom F {e = e}) ⋆⋆ F⟪ı⟫≡G⟪ı⟫-Hom {Q = Q} {𝓒 = FreeCartesianCategory} {𝓓 = 𝓒} F F' η agree-on-η {e = e} ⋆⋆ F⟪η⟫≡F⟪↑⟫-Hom F' {e = e})
-      --aom : ∀{t t'} → (f : FreeCartesianCategory .cat [ t , t' ]) → F⟪-⟫≡F'⟪-⟫ f
+      aom : ∀{t t'} → (f : FreeCartesianCategory .cat [ t , t' ]) → F⟪-⟫≡F'⟪-⟫ f
       --aom = elimExpProp {P = F⟪-⟫≡F'⟪-⟫} isProp-aom-type (λ e → {!F⟪ı⟫≡G⟪ı⟫-Hom F F' η agree-on-η {e = e}!}) {!!} {!!} {!!} {!!} {!!} {!!}
-      --aom = elimExpProp {P = F⟪-⟫≡F'⟪-⟫} isProp-aom-type
-      --  --(λ e → toPathP (congS (λ x → {!!}) (fromPathP (symP (F⟪η⟫≡F⟪↑⟫-Hom F) ⋆⋆ F⟪ı⟫≡G⟪ı⟫-Hom {Q = Q} {𝓒 = FreeCartesianCategory} {𝓓 = 𝓒} F F' η agree-on-η {e = e} ⋆⋆ F⟪η⟫≡F⟪↑⟫-Hom F'))))
-      --  (λ e → cong-transport-PathP {!!} (symP (F⟪η⟫≡F⟪↑⟫-Hom F {e = e}) ⋆⋆ F⟪ı⟫≡G⟪ı⟫-Hom {Q = Q} {𝓒 = FreeCartesianCategory} {𝓓 = 𝓒} F F' η agree-on-η {e = e} ⋆⋆ F⟪η⟫≡F⟪↑⟫-Hom F' {e = e}))
-      --  --(fromPathP (symP (F⟪η⟫≡F⟪↑⟫-Hom F) ⋆⋆ F⟪ı⟫≡G⟪ı⟫-Hom {Q = Q} {𝓒 = FreeCartesianCategory} {𝓓 = 𝓒} F F' η agree-on-η {e = e} ⋆⋆ F⟪η⟫≡F⟪↑⟫-Hom F')))
-      --  {!!}
-      --  {!!}
-      --  {!!}
-      --  {!!}
-      --  {!!}
-      --  {!!}
-      --  where
-      --  -- prove a proposition by induction over the FreeCartesianCategory
-      --  -- so we can ignore higher path coherences in the FreeCartesianCategory
-      --  elimExpProp : ∀{P : ∀{t t'} → FreeCartesianCategory .cat [ t , t' ] → Type ℓ}
-      --    → (∀{t t'} f → isProp (P {t} {t'} f))
-      --    → (∀ e → P (↑ₑ e))
-      --    → (∀{A} → P {A} idₑ)
-      --    → (∀{t t' t'' f f'} → P {t} {t'} f → P {t'} {t''} f' → P (f ⋆ₑ f'))
-      --    → (∀{A B} → P (π₁ₑ {A} {B}))
-      --    → (∀{A B} → P (π₂ₑ {A} {B}))
-      --    → (∀{A B C f g} → P {C} {A} (f) → P {C} {B} (g) → P ⟨ f ,ₑ g ⟩)
-      --    → (∀{t} → P (!ₑ {t}))
-      --    → ∀{t t'} f → P {t} {t'} f
-      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (↑ₑ e) = P↑ e
-      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! idₑ = Pid
-      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (f ⋆ₑ f') = P⋆ {!!} {!!}
-      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (⋆ₑIdL f i) = {!!}
-      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (⋆ₑIdR f i) = {!!}
-      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (⋆ₑAssoc f f' f'' i) = {!!}
-      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (isSetEdgeExpr f f' p q i j) = {!!}
-      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! π₁ₑ = Pπ₁
-      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! π₂ₑ = Pπ₂
-      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! ⟨ f ,ₑ f₁ ⟩ = {!!}
-      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! !ₑ = P!
-      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (×̬β₁ i) = {!!}
-      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (×̬β₂ i) = {!!}
-      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (×̬η i) = {!!}
-      --  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (⊤̬η i) = {!!}
+      aom = elimExpProp {P = F⟪-⟫≡F'⟪-⟫} isProp-aom-type
+        --(λ e → toPathP (congS (λ x → {!!}) (fromPathP (symP (F⟪η⟫≡F⟪↑⟫-Hom F) ⋆⋆ F⟪ı⟫≡G⟪ı⟫-Hom {Q = Q} {𝓒 = FreeCartesianCategory} {𝓓 = 𝓒} F F' η agree-on-η {e = e} ⋆⋆ F⟪η⟫≡F⟪↑⟫-Hom F'))))
+        --(λ e → cong-transport-PathP {!!} (symP (F⟪η⟫≡F⟪↑⟫-Hom F {e = e}) ⋆⋆ F⟪ı⟫≡G⟪ı⟫-Hom {Q = Q} {𝓒 = FreeCartesianCategory} {𝓓 = 𝓒} F F' η agree-on-η {e = e} ⋆⋆ F⟪η⟫≡F⟪↑⟫-Hom F' {e = e}))
+        (λ e → {!!})
+        --(fromPathP (symP (F⟪η⟫≡F⟪↑⟫-Hom F) ⋆⋆ F⟪ı⟫≡G⟪ı⟫-Hom {Q = Q} {𝓒 = FreeCartesianCategory} {𝓓 = 𝓒} F F' η agree-on-η {e = e} ⋆⋆ F⟪η⟫≡F⟪↑⟫-Hom F')))
+        {!!}
+        {!!}
+        {!!}
+        {!!}
+        {!!}
+        {!!}
+        where
+        -- prove a proposition by induction over the FreeCartesianCategory
+        -- so we can ignore higher path coherences in the FreeCartesianCategory
+        elimExpProp : ∀{P : ∀{t t'} → FreeCartesianCategory .cat [ t , t' ] → Type ℓ}
+          → (∀{t t'} f → isProp (P {t} {t'} f))
+          → (∀ e → P (↑ₑ e))
+          → (∀{A} → P {A} idₑ)
+          → (∀{t t' t'' f f'} → P {t} {t'} f → P {t'} {t''} f' → P (f ⋆ₑ f'))
+          → (∀{A B} → P (π₁ₑ {A} {B}))
+          → (∀{A B} → P (π₂ₑ {A} {B}))
+          → (∀{A B C f g} → P {C} {A} (f) → P {C} {B} (g) → P ⟨ f ,ₑ g ⟩)
+          → (∀{t} → P (!ₑ {t}))
+          → ∀{t t'} f → P {t} {t'} f
+        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (↑ₑ e) = P↑ e
+        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! idₑ = Pid
+        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (f ⋆ₑ f') = P⋆ {!!} {!!}
+        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (⋆ₑIdL f i) = {!!}
+        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (⋆ₑIdR f i) = {!!}
+        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (⋆ₑAssoc f f' f'' i) = {!!}
+        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (isSetEdgeExpr f f' p q i j) = {!!}
+        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! π₁ₑ = Pπ₁
+        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! π₂ₑ = Pπ₂
+        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! ⟨ f ,ₑ f₁ ⟩ = {!!}
+        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! !ₑ = P!
+        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (×̬β₁ i) = {!!}
+        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (×̬β₂ i) = {!!}
+        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (×̬η i) = {!!}
+        elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (⊤̬η i) = {!!}
       -- no need to show F ≡ F' as StrictCartesianFunctor s
       -- (and in fact I think we'd need that isSet (𝓒 .ob))
       ind : F .functor ≡ F' .functor
