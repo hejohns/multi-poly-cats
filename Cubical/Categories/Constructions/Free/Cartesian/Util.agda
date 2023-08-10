@@ -1,5 +1,5 @@
 {-# OPTIONS --safe #-}
-module Cubical.Categories.Constructions.FreeCartesian.Util where
+module Cubical.Categories.Constructions.Free.Cartesian.Util where
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Transport
 open import Cubical.Foundations.Path

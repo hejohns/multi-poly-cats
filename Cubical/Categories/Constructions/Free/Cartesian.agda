@@ -1,24 +1,25 @@
 {-# OPTIONS --safe #-}
-module Cubical.Categories.Constructions.FreeCartesian.FreeCartesian where
+module Cubical.Categories.Constructions.Free.Cartesian where
+
 open import Cubical.Foundations.Prelude
-private variable ℓ ℓ' ℓ'' ℓ''' : Level
-private variable ℓq ℓq' : Level
-private variable ℓc ℓc' : Level
-private variable ℓd ℓd' : Level
 open import Cubical.Categories.Category
-open Category
 open import Cubical.Categories.CartesianCategory.BinaryCartesianCategory
-open BinaryCartesianCategory
-open StrictCartesianFunctor
 open import Cubical.Categories.Functor
-open Functor
 open import Cubical.Foundations.Transport
 open import Cubical.Foundations.Path
-open import Cubical.Categories.Constructions.FreeCartesian.Util
-open import Cubical.Categories.Constructions.FreeCartesian.Data
-open Cubical.Categories.Constructions.FreeCartesian.Data.Data
+open import Cubical.Categories.Constructions.Free.Cartesian.Util
+open import Cubical.Categories.Constructions.Free.Cartesian.Data
+
+open Category
+open Functor
+open BinaryCartesianCategory
+open StrictCartesianFunctor
 open ProductQuiver
 module _ (Q : ProductQuiver ℓq ℓq') where
+  private variable ℓ ℓ' ℓ'' ℓ''' : Level
+  private variable ℓq ℓq' : Level
+  private variable ℓc ℓc' : Level
+  private variable ℓd ℓd' : Level
   open import Cubical.Categories.Limits.BinProduct
   open BinProduct
   open import Cubical.Data.Sigma.Base
