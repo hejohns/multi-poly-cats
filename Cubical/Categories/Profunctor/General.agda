@@ -1,4 +1,4 @@
-{-# OPTIONS --safe #-}
+{-# OPTIONS --safe --lossy-unification #-}
 module Cubical.Categories.Profunctor.General where
 
 open import Cubical.Reflection.RecordEquiv
@@ -6,13 +6,14 @@ open import Cubical.Reflection.RecordEquiv
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
+open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.Structure
 open import Cubical.Foundations.Univalence
 open import Cubical.Foundations.Function renaming (_∘_ to _∘f_)
 
 open import Cubical.Categories.Category renaming (isIso to isIsoC)
 open import Cubical.Categories.Functor
-open import Cubical.Categories.Bifunctor.Base
+open import Cubical.Categories.Bifunctor.Redundant
 open import Cubical.Categories.Instances.Functors
 open import Cubical.Categories.NaturalTransformation
 open import Cubical.Categories.NaturalTransformation.More
@@ -36,8 +37,7 @@ private
 
 open Category
 open Functor
-open UnivElt
-open isUniversal
+open UniversalElement
 open Bifunctor
 
 -- Convenient notation for function composition in the same order as
@@ -56,30 +56,13 @@ C o-[ ℓS ]-* D = Bifunctor (C ^op) D (SET ℓS)
 _*-[_]-o_ : (C : Category ℓC ℓC') → ∀ ℓS → (D : Category ℓD ℓD') → Type _
 C *-[ ℓS ]-o D = D o-[ ℓS ]-* C
 
-module _  {C : Category ℓC ℓC'}{D : Category ℓD ℓD'} {ℓS : Level} where
-  -- Product of a presheaf with a profunctor
-  -- This could be done by turning the presheaf into a profunctor
-  -- first but at the cost of extra ids.
-  _o×_ : (P : 𝓟o C ℓS) → (R : C o-[ ℓS ]-* D) → C o-[ ℓS ]-* D
-  (P o× R) .Bif-ob c d =
-    ⟨ P ⟅ c ⟆ ⟩ × ⟨ R ⟅ c , d ⟆b ⟩ , isSet× ((P ⟅ c ⟆) .snd)
-      ((R ⟅ c , d ⟆b) .snd) -- should be a combinator somewhere
-  (P o× R) .Bif-homL f d (p , r) = (P ⟪ f ⟫) p , (R ⟪ f ⟫l) r
-  (P o× R) .Bif-homR c g (p , r) = p , ((R ⟪ g ⟫r) r)
-  (P o× R) .Bif-idL = funExt λ (p , r) → λ i → (P .F-id i p , R .Bif-idL i r)
-  (P o× R) .Bif-idR = funExt λ (p , r) → λ i → (p , R .Bif-idR i r)
-  (P o× R) .Bif-seqL f f' =
-    funExt (λ (p , r) i → (P .F-seq f f' i p , R .Bif-seqL f f' i r))
-  (P o× R) .Bif-seqR g g' = funExt (λ (p , r) i → (p , R .Bif-seqR g g' i r))
-  (P o× R) .Bif-assoc f g =
-    funExt λ (p , r) i → ((P ⟪ f ⟫) p) , (R .Bif-assoc f g i r)
-
 module _  {C : Category ℓC ℓC'}
           {D : Category ℓD ℓD'}
           (R : C o-[ ℓR ]-* D) (S : C o-[ ℓS ]-* D) where
 
-  ℓmaxCDSR : Level
-  ℓmaxCDSR = (ℓ-max ℓC (ℓ-max ℓC' (ℓ-max ℓD (ℓ-max ℓD' (ℓ-max ℓS ℓR)))))
+  private
+    ℓmaxCDSR : Level
+    ℓmaxCDSR = (ℓ-max ℓC (ℓ-max ℓC' (ℓ-max ℓD (ℓ-max ℓD' (ℓ-max ℓS ℓR)))))
 
   -- A definition of profunctor homomorphism that avoids Lifts
   record ProfHomo : Type ℓmaxCDSR where
@@ -153,6 +136,28 @@ module _  {C : Category ℓC ℓC'}
   ProfIso = Σ[ ϕ ∈ ProfHomo ] ∀ c d → isIso (ϕ .PH-ob {c}{d})
 
 open ProfHomo
+module _  {C : Category ℓC ℓC'}{D : Category ℓD ℓD'} {ℓS : Level} where
+  -- Product of a presheaf with a profunctor
+  -- This could be done by turning the presheaf into a profunctor
+  -- first but at the cost of extra ids.
+  _o×_ : (P : 𝓟o C ℓS) → (R : C o-[ ℓS ]-* D) → C o-[ ℓS ]-* D
+  (P o× R) = mkBifunctorParAx F where
+    open BifunctorParAx
+    F : BifunctorParAx (C ^op) D (SET ℓS)
+    F .Bif-ob c d = (⟨ P ⟅ c ⟆ ⟩ × ⟨  R ⟅ c , d ⟆b ⟩)
+      , (isSet× ((P ⟅ c ⟆) .snd) ((R ⟅ c , d ⟆b) .snd))
+    F .Bif-homL f _ (p , r) = (P ⟪ f ⟫) p , (R ⟪ f ⟫l) r
+    F .Bif-homR _ g (p , r) = p , ((R ⟪ g ⟫r) r)
+    F .Bif-hom× f g (p , r) = ((P ⟪ f ⟫) p) , ((R ⟪ f , g ⟫×) r)
+    F .Bif-×-id = funExt (λ (p , r) → ΣPathP ((funExt⁻ (P .F-id) _)
+      , funExt⁻ (R .Bif-×-id) _))
+    F .Bif-×-seq f f' g g' = funExt (λ (p , r) → ΣPathP (
+      ( funExt⁻ (P .F-seq f f') _)
+      , funExt⁻ (R .Bif-×-seq f f' g g') _))
+    F .Bif-L×-agree f = funExt (λ (p , r) → ΣPathP (refl
+      , (funExt⁻ (R .Bif-L×-agree _) _)))
+    F .Bif-R×-agree g = funExt (λ (p , r) → ΣPathP ((sym (funExt⁻ (P .F-id) _))
+      , funExt⁻ (R .Bif-R×-agree _) _))
 
 Functor→Prof*-o : (C : Category ℓC ℓC')
                   (D : Category ℓD ℓD') (F : Functor C D) → C *-[ ℓD' ]-o D
@@ -162,22 +167,55 @@ Functor→Profo-* : (C : Category ℓC ℓC')
                   (D : Category ℓD ℓD') (F : Functor C D) → C o-[ ℓD' ]-* D
 Functor→Profo-* C D F = HomBif D ∘Fl (F ^opF)
 
-Prof*-o→Functor : (C : Category ℓC ℓC')
-                  (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o D) →
-                    Functor C (FUNCTOR (D ^op) (SET ℓS))
-Prof*-o→Functor C D R = curryFl (D ^op) (SET _) ⟅ Bifunctor→Functor R ⟆
+-- Prof*-o→Functor : (C : Category ℓC ℓC')
+--                   (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o D) →
+--                     Functor C (FUNCTOR (D ^op) (SET ℓS))
+-- Prof*-o→Functor C D R = curryFl (D ^op) (SET _) ⟅ Bifunctor→Functor R ⟆
 
-Profo-*→Functor : (C : Category ℓC ℓC')
-                  (D : Category ℓD ℓD') (R : C o-[ ℓS ]-* D) →
-                    Functor (C ^op) (FUNCTOR D (SET ℓS))
-Profo-*→Functor C D R = curryF D (SET _) ⟅ Bifunctor→Functor R ⟆
+-- Profo-*→Functor : (C : Category ℓC ℓC')
+--                   (D : Category ℓD ℓD') (R : C o-[ ℓS ]-* D) →
+--                     Functor (C ^op) (FUNCTOR D (SET ℓS))
+-- Profo-*→Functor C D R = curryF D (SET _) ⟅ Bifunctor→Functor R ⟆
 
 module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o D) where
 
   open NatTrans
   open NatIso
   open isIsoC
+  open isEquiv
 
+  UniversalElementAt : C .ob → Type _
+  UniversalElementAt c = UniversalElement D (appR R c)
+
+  UniversalElements : Type _
+  UniversalElements = ((∀ (c : C .ob) → UniversalElement D (appR R c)))
+
+  FunctorComprehension :
+    ((∀ (c : C .ob) → UniversalElement D (appR R c)))
+    → Σ[ F ∈ Functor C D ] (∀ (c : C .ob)
+    → UniversalElementOn D (appR R c) (F ⟅ c ⟆))
+  FunctorComprehension ues = F ,
+    (λ c → UniversalElementToUniversalElementOn _ _ (ues c)) where
+    F : Functor C D
+    F .F-ob c = ues c .vertex
+    F .F-hom f =
+      ues _ .universal _ .equiv-proof ((R ⟪ f ⟫r) (ues _ .element))
+      .fst .fst
+    F .F-id {x = c} = cong fst (ues c .universal (ues c .vertex) .equiv-proof
+      ((R ⟪ C .id ⟫r) (ues _ .element)) .snd (_ ,
+      funExt⁻ (R .Bif-L-id) _
+      ∙ sym (funExt⁻ (R .Bif-R-id) _)))
+    F .F-seq f g = cong fst ((ues _ .universal (ues _ .vertex) .equiv-proof
+      ((R ⟪ f ⋆⟨ C ⟩ g ⟫r) (ues _ .element))) .snd (_ ,
+      funExt⁻ (R .Bif-L-seq _ _) _
+      ∙ cong (R .Bif-homL _ _) (ues _ .universal _ .equiv-proof
+          ((R ⟪ g ⟫r) (ues _ .element)) .fst .snd)
+      ∙ funExt⁻ ( (Bif-RL-commute R _ _)) _
+      ∙ cong (R .Bif-homR _ _) ((ues _ .universal _ .equiv-proof
+          ((R ⟪ f ⟫r) (ues _ .element)) .fst .snd))
+      ∙ sym (funExt⁻ (R .Bif-R-seq _ _) _) ))
+
+  {-
   ProfRepresents : Functor C D → Type _
   ProfRepresents G = ProfIso {C = D}{D = C} R (Functor→Prof*-o C D G)
 
@@ -191,7 +229,7 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
            (Prof*-o→Functor C D (LiftF {ℓD'}{ℓS} ∘Fb (Functor→Prof*-o C D G)))
 
   RepresentableAt : (c : C .ob) → Type _
-  RepresentableAt c = UnivElt D (pAppR R c)
+  RepresentableAt c = UniversalElement D (pAppR R c)
 
   ParamUnivElt : Type _
   ParamUnivElt = (c : C .ob) → RepresentableAt c
@@ -594,3 +632,4 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
                                                    PshFunctorRepresentation
   ParamUniversalElement→PshFunctorRepresentation U =
     ParamUnivElt→PshFunctorRepresentation (ParamUniversalElement→ParamUnivElt U)
+  -}

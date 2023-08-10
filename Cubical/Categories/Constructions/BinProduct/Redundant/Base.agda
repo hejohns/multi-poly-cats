@@ -15,7 +15,8 @@ open import Cubical.Data.Sum as Sum hiding (rec)
 open import Cubical.Data.Sigma
 
 import Cubical.Categories.Constructions.BinProduct as BP
-open import Cubical.Categories.Constructions.Free.Category as Free hiding (rec)
+open import Cubical.Categories.Constructions.Free.Category.Quiver as Free
+  hiding (rec)
 open import Cubical.Categories.Constructions.Presented as Presented hiding (rec)
 open import Cubical.Categories.Bifunctor.Redundant
 
@@ -26,7 +27,7 @@ private
 open Category
 open Functor
 open Quiver
-open Interp
+open Interpᴰ
 open Axioms
 
 module _ (C : Category ℓc ℓc') (D : Category ℓd ℓd') where

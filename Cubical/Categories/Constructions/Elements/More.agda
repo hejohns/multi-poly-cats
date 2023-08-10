@@ -2,9 +2,10 @@
 
 -- The Category of Elements
 
-open import Cubical.Categories.Category
-
 module Cubical.Categories.Constructions.Elements.More where
+
+open import Cubical.Categories.Category
+open import Cubical.Categories.Isomorphism
 
 open import Cubical.Categories.Instances.Sets
 open import Cubical.Foundations.Equiv
@@ -18,20 +19,35 @@ open import Cubical.Categories.Constructions.Elements
 import Cubical.Categories.Morphism as Morphism
 import Cubical.Categories.Constructions.Slice as Slice
 
+open import Cubical.Foundations.Isomorphism.More
+open import Cubical.Categories.Isomorphism.More
+open import Cubical.Categories.Instances.Sets.More
+
 open Category
 open Functor
+open isUnivalent
+module _ {ℓ ℓ'} {C : Category ℓ ℓ'} {ℓS}
+                (isUnivC : isUnivalent C) (F : Functor C (SET ℓS)) where
+  open Covariant {C = C}
 
-module _ {ℓ ℓ'} {C : Category ℓ ℓ'} {ℓS} (F : Functor (C ^op) (SET ℓS)) where
-  open Contravariant {C = C}
-  Elementᴾ : Type (ℓ-max ℓ ℓS)
-  Elementᴾ = (∫ᴾ F) .ob
+  isUnivalent∫ : isUnivalent (∫ F)
+  isUnivalent∫ .univ (c , f) (c' , f') = isIsoToIsEquiv
+    ( isoToPath∫
+    , (λ f≅f' → CatIso≡ _ _
+        (Σ≡Prop (λ _ → (F ⟅ _ ⟆) .snd f' _)
+          (cong fst
+          (secEq (univEquiv isUnivC _ _) (F-Iso {F = ForgetElements F} f≅f')))))
+    , λ f≡f' → ΣSquareSet (λ x → snd (F ⟅ x ⟆))
+      ( cong (CatIsoToPath isUnivC) (F-pathToIso {F = ForgetElements F} f≡f')
+      ∙ retEq (univEquiv isUnivC _ _) (cong fst f≡f'))) where
 
-  ∫ᴾhomEqSimpl : ∀ {o1 o2} (f g : (∫ᴾ F) [ o1 , o2 ])
-               → fst f ≡ fst g → f ≡ g
-  ∫ᴾhomEqSimpl f g p = ∫ᴾhomEq {F = F} f g refl refl p
-
-  domain : Functor (∫ᴾ F) C
-  domain .F-ob (x , ϕ) = x
-  domain .F-hom (f , comm) = f
-  domain .F-id = refl
-  domain .F-seq f g = refl
+    isoToPath∫ : ∀ {c c' f f'}
+               → CatIso (∫ F) (c , f) (c' , f')
+               → (c , f) ≡ (c' , f')
+    isoToPath∫ {f = f} f≅f' = ΣPathP
+      ( CatIsoToPath isUnivC (F-Iso {F = ForgetElements F} f≅f')
+      , toPathP ( (λ j → transport (λ i → fst
+                  (F-isoToPath {F = F} isUnivC isUnivalentSET
+                    (F-Iso {F = ForgetElements F} f≅f') (~ j) i)) f)
+                ∙ univSetβ (F-Iso {F = F ∘F ForgetElements F} f≅f') f
+                ∙ sym (f≅f' .fst .snd)))

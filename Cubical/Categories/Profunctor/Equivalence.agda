@@ -3,9 +3,8 @@
 -}
 
 {-# OPTIONS --safe #-}
--- module Cubical.Categories.Profunctor.Equivalence where
 module Cubical.Categories.Profunctor.Equivalence where
-
+{-
 open import Cubical.Categories.Profunctor.General
 
 open import Cubical.Reflection.RecordEquiv
@@ -351,3 +350,4 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
   PshFunctorRepresentation≅ParamUniversalElement =
     compIso PshFunctorRepresentation≅ParamUnivElt
             ParamUnivElt≅ParamUniversalElement
+-}
