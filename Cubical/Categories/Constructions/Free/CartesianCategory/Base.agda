@@ -5,9 +5,19 @@ open import Cubical.Foundations.Prelude
 open import Cubical.Categories.Category
 open import Cubical.Categories.CartesianCategory.BinaryCartesianCategory
 open import Cubical.Categories.Constructions.Free.CartesianCategory.ProductQuiver
+open import Cubical.Categories.Constructions.Free.CartesianCategory.Util
 open import Cubical.Categories.Functor
 open import Cubical.Foundations.Transport
 open import Cubical.Foundations.Path
+open import Cubical.Data.Equality hiding (id; isProp; Iso)
+  renaming ( _≡_ to Eq
+           ; refl to reflEq
+           ; sym to symEq
+           ; _∙_ to _∙Eq_
+           ; transport to transportEq
+           ; funExt to funExtEq
+           )
+--open import Cubical.Data.Equality.Conversion renaming (funExt to funExtEq)
 open BinaryCartesianCategory
 open StrictCartesianFunctor
 open Category
@@ -68,31 +78,66 @@ module _ (Q : ProductQuiver ℓq ℓq') where
   FreeCartesianCategory .! = !ₑ
   FreeCartesianCategory .⊤η = ⊤̬η
   open Interp
-  reinterp-trivial : (A : ProdTypeExpr') → interpret-objects Q FreeCartesianCategory ↑̬ A ≡ A
-  reinterp-trivial (↑̬ B) = refl
-  reinterp-trivial (B ×̬ C) i = reinterp-trivial B i ×̬ reinterp-trivial C i
-  reinterp-trivial ⊤̬  = refl
-  reinterp-trivial' : _
-  reinterp-trivial' = funExt reinterp-trivial
+  reinterp-trivial : (A : ProdTypeExpr') → Eq (interpret-objects Q FreeCartesianCategory ↑̬ A) A
+  reinterp-trivial (↑̬ B) = reflEq
+  reinterp-trivial (B ×̬ C) = ap₂ (λ x y → x ×̬ y) (reinterp-trivial B) (reinterp-trivial C)
+  reinterp-trivial ⊤̬  = reflEq
   η : Interp Q FreeCartesianCategory
   η .I-ob = ↑̬
-  η .I-hom e = transport⁻ inside-EdgeExpr (↑ₑ e)
-    where
-    inside-EdgeExpr : ∀{A B} → EdgeExpr[ interpret-objects Q FreeCartesianCategory ↑̬ A , interpret-objects Q FreeCartesianCategory ↑̬ B ] ≡ EdgeExpr[ A , B ]
-    inside-EdgeExpr {A} {B} = congS (λ x → EdgeExpr[ x A , x B ]) reinterp-trivial'
+  η .I-hom e = transportEq (λ x → EdgeExpr[ x (Q .dom e) , x (Q .cod e) ]) (symEq (funExtEq reinterp-trivial)) (↑ₑ e)
+  --η .I-hom e = transport (λ x → EdgeExpr[ x (Q .dom e) , x (Q .cod e) ]) (symEq (funExtEq reinterp-trivial)) (↑ₑ e)
+  elimExpProp : ∀{P : ∀{t t'} → FreeCartesianCategory .cat [ t , t' ] → Type ℓ}
+      → (∀{t t'} f → isProp (P {t} {t'} f))
+      → (∀ e → P (↑ₑ e))
+      → (∀{A} → P {A} idₑ)
+      → (∀{t t' t'' f f'} → P {t} {t'} f → P {t'} {t''} f' → P (f ⋆ₑ f'))
+      → (∀{A B} → P (π₁ₑ {A} {B}))
+      → (∀{A B} → P (π₂ₑ {A} {B}))
+      → (∀{A B C f g} → P {C} {A} (f) → P {C} {B} (g) → P ⟨ f ,ₑ g ⟩)
+      → (∀{t} → P (!ₑ {t}))
+      → ∀{t t'} f → P {t} {t'} f
+  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (↑ₑ e) = P↑ e
+  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! idₑ = Pid
+  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (f ⋆ₑ f') = P⋆ {!!} {!!}
+  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (⋆ₑIdL f i) = {!!}
+  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (⋆ₑIdR f i) = {!!}
+  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (⋆ₑAssoc f f' f'' i) = {!!}
+  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (isSetEdgeExpr f f' p q i j) = {!!}
+  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! π₁ₑ = Pπ₁
+  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! π₂ₑ = Pπ₂
+  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! ⟨ f ,ₑ f₁ ⟩ = {!!}
+  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! !ₑ = P!
+  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (×̬β₁ i) = {!!}
+  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (×̬β₂ i) = {!!}
+  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (×̬η i) = {!!}
+  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (⊤̬η i) = {!!}
   module _ {𝓒 : BinaryCartesianCategory ℓc ℓc'}(F : StrictCartesianFunctor FreeCartesianCategory 𝓒) where
   module _ {𝓒 : BinaryCartesianCategory ℓc ℓc'}(F F' : StrictCartesianFunctor FreeCartesianCategory 𝓒) where
-    module _ (agree-on-η : {!!}) where
-      open import Cubical.Foundations.HLevels
-      open import Cubical.Foundations.Path
-      open import Cubical.Foundations.Isomorphism
-
-      open Iso
+    module _ (agree-on-η-ob : ∀ v → F .functor ⟅ ↑̬ v ⟆ ≡ F' .functor ⟅ ↑̬ v ⟆) where
       aoo : ∀ t → F .functor ⟅ t ⟆ ≡ F' .functor ⟅ t ⟆
-      aoo (↑̬ A) i = agree-on-η i .I-ob A
-      aoo (A ×̬ B) = {!!}
-      -- F .preserves-× ∙ inside-× 𝓒 (aoo A) (aoo B) ∙ sym (F' .preserves-×)
+      aoo (↑̬ A) = agree-on-η-ob A
+      aoo (A ×̬ B) = F .preserves-× ∙∙ cong₂ (λ x y → x ×⟨ 𝓒 ⟩ y) (aoo A) (aoo B) ∙∙ sym (F' .preserves-×)
       aoo ⊤̬ = F .preserves-⊤ ∙ sym (F' .preserves-⊤)
-      aoo' = funExt aoo
-      aom-type : ∀{t t'} → (f : FreeCartesianCategory .cat [ t , t' ]) → Type _
-      aom-type {t} {t'} f = PathP (λ i → congS (λ x → 𝓒 .cat [ x t , x t' ]) aoo' i) (F .functor .F-hom f) (F' .functor .F-hom f)
+      module _ (agree-on-η-hom : ∀ e → PathP (λ i → cong₂ (λ x y → 𝓒 .cat [ x , y ]) (aoo (Q .dom e)) (aoo (Q .cod e)) i) (F .functor ⟪ ↑ₑ e ⟫) (F' .functor ⟪ ↑ₑ e ⟫)) where
+        module _ {t t'}(f : FreeCartesianCategory .cat [ t , t' ]) where
+          open import Cubical.Foundations.HLevels
+          open import Cubical.Foundations.Path
+          open import Cubical.Foundations.Isomorphism
+          open Iso
+          aom-type : Type _
+          aom-type = PathP (λ i → cong₂ (λ x y → 𝓒 .cat [ x , y ]) (aoo t) (aoo t') i) (F .functor .F-hom f) (F' .functor .F-hom f)
+          isProp-aom-type : isProp aom-type
+          isProp-aom-type = isPropRetract fromPathP toPathP (PathPIsoPath _ _ _ .leftInv) (𝓒 .cat .isSetHom _ _)
+        aom : ∀{t t'}(f : FreeCartesianCategory .cat [ t , t' ]) → aom-type f
+        aom f = elimExpProp {P = aom-type}
+          isProp-aom-type
+          agree-on-η-hom
+          (toPathP {!!})
+          {!!}
+          {!!}
+          {!!}
+          {!!}
+          {!!}
+          {!!}
+        ind : F .functor ≡ F' .functor
+        ind = Functor≡ aoo aom
