@@ -132,7 +132,7 @@ module _ (Q : ProductQuiver ℓq ℓq') where
         aom f = elimExpProp {P = aom-type}
           isProp-aom-type
           agree-on-η-hom
-          (toPathP {!!})
+          (F .functor .F-id ◁ (λ i → 𝓒 .cat .id) ▷ sym (F' .functor .F-id))
           {!!}
           {!!}
           {!!}
