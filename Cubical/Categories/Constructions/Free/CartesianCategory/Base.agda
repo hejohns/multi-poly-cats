@@ -90,15 +90,15 @@ module _ (Q : ProductQuiver ℓq ℓq') where
       → (∀{t t'} f → isProp (P {t} {t'} f))
       → (∀ e → P (↑ₑ e))
       → (∀{A} → P {A} idₑ)
-      → (∀{t t' t'' f f'} → P {t} {t'} f → P {t'} {t''} f' → P (f ⋆ₑ f'))
+      → (∀{t t' t''} → ∀ f f' → P {t} {t'} f → P {t'} {t''} f' → P (f ⋆ₑ f'))
       → (∀{A B} → P (π₁ₑ {A} {B}))
       → (∀{A B} → P (π₂ₑ {A} {B}))
-      → (∀{A B C f g} → P {C} {A} (f) → P {C} {B} (g) → P ⟨ f ,ₑ g ⟩)
+      → (∀{A B C} → ∀ f f' → P {C} {A} f → P {C} {B} f' → P ⟨ f ,ₑ f' ⟩)
       → (∀{t} → P (!ₑ {t}))
       → ∀{t t'} f → P {t} {t'} f
   elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (↑ₑ e) = P↑ e
   elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! idₑ = Pid
-  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (f ⋆ₑ f') = P⋆ {!!} {!!}
+  elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (f ⋆ₑ f') = P⋆ f f' (elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! f) (elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! f')
   elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (⋆ₑIdL f i) = {!!}
   elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (⋆ₑIdR f i) = {!!}
   elimExpProp isPropP P↑ Pid P⋆ Pπ₁ Pπ₂ P⟨,⟩ P! (⋆ₑAssoc f f' f'' i) = {!!}
@@ -133,11 +133,11 @@ module _ (Q : ProductQuiver ℓq ℓq') where
           isProp-aom-type
           agree-on-η-hom
           (F .functor .F-id ◁ (λ i → 𝓒 .cat .id) ▷ sym (F' .functor .F-id))
+          (λ f₁ f₂ p q → F .functor .F-seq f₁ f₂ ◁ (λ i → p i ⋆⟨ 𝓒 .cat ⟩ q i) ▷ sym (F' .functor .F-seq f₁ f₂))
           {!!}
           {!!}
-          {!!}
-          {!!}
-          {!!}
+          (λ f₁ f₂ p q → {!!})
+          ({!!} ◁ {!!} ▷ {!!})
           {!!}
         ind : F .functor ≡ F' .functor
         ind = Functor≡ aoo aom

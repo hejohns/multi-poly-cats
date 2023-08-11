@@ -34,3 +34,5 @@ module _ (𝓒 : BinaryCartesianCategory ℓc ℓc')(𝓓 : BinaryCartesianCateg
       functor : Functor (𝓒 .cat) (𝓓 .cat)
       preserves-× : ∀{A B} → functor ⟅ A ×⟨ 𝓒 ⟩ B ⟆ ≡ functor ⟅ A ⟆ ×⟨ 𝓓 ⟩ functor ⟅ B ⟆
       preserves-⊤ : functor ⟅ 𝓒 .⊤ ⟆ ≡ 𝓓 .⊤
+
+  -- functoriality of products
