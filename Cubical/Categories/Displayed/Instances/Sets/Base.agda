@@ -67,6 +67,7 @@ open import Cubical.Categories.Instances.Functors
 open import Cubical.Categories.Displayed.NaturalTransformation
 open import Cubical.Categories.NaturalTransformation.Base
 open import Cubical.Categories.Functor
+open import Cubical.Foundations.Transport
 module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'}(Cᴰ : Categoryᴰ C ℓC ℓC')(Dᴰ : Categoryᴰ D ℓD ℓD') where
   open Categoryᴰ
   open NatTransᴰ
@@ -78,7 +79,82 @@ module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'}(Cᴰ : Categoryᴰ C
   module D = Category D
   idTransᴰ : (F : Functor C D)(Fᴰ : Functorᴰ F Cᴰ Dᴰ) → NatTransᴰ (idTrans F) Fᴰ Fᴰ
   idTransᴰ F Fᴰ .N-obᴰ {x = c} cᴰ = Dᴰ .idᴰ
-  idTransᴰ F Fᴰ .N-homᴰ {x = c} {y = c'} {xᴰ = cᴰ} {yᴰ = c'ᴰ} fᴰ = compPathP' (Dᴰ .⋆IdRᴰ (Fᴰ .F-homᴰ fᴰ)) (symP (Dᴰ .⋆IdLᴰ (Fᴰ .F-homᴰ fᴰ)))
+  --compPathP' (Dᴰ .⋆IdRᴰ (Fᴰ .F-homᴰ fᴰ)) (symP (Dᴰ .⋆IdLᴰ (Fᴰ .F-homᴰ fᴰ)))
+  idTransᴰ F Fᴰ .N-homᴰ {x = c} {y = c'} {f = f} {xᴰ = cᴰ} {yᴰ = c'ᴰ} fᴰ = goal
+    where
+    one : ((Fᴰ .F-homᴰ fᴰ) Dᴰ.⋆ᴰ (Dᴰ .idᴰ)) Dᴰ.≡[ D.⋆IdR _ ] (Fᴰ .F-homᴰ fᴰ)
+    one = Dᴰ .⋆IdRᴰ (Fᴰ .F-homᴰ fᴰ)
+    two : ((Dᴰ .idᴰ) Dᴰ.⋆ᴰ (Fᴰ .F-homᴰ fᴰ)) Dᴰ.≡[ D.⋆IdL _ ] (Fᴰ .F-homᴰ fᴰ)
+    two = Dᴰ .⋆IdLᴰ (Fᴰ .F-homᴰ fᴰ)
+    six : (F .F-hom f) D.⋆ (D .id) ≡ (D .id) D.⋆ (F .F-hom f)
+    six = (D.⋆IdR _) ∙ (sym (D.⋆IdL _))
+    eight : (F .F-hom f) D.⋆ (D .id) ≡ (D .id) D.⋆ (F .F-hom f)
+    eight = idTrans F .N-hom f
+    same : six ≡ eight
+    same = D.isSetHom _ _ _ _
+    nine : eight ≡ eight
+    nine = {!!}
+    --three : PathP
+    --          (λ i →
+    --             Dᴰ.Hom[ D .⋆IdL (F .F-hom f) (~ i) ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ])
+    --          (Fᴰ .F-homᴰ fᴰ)
+    --          (Dᴰ .idᴰ Dᴰ.⋆ᴰ Fᴰ .F-homᴰ fᴰ)
+    --three = symP two
+--i = i0 ⊢ Dᴰ .Hom[_][_,_] (D ._⋆_ (F .F-hom f) (D .id))
+--         (Fᴰ .F-obᴰ cᴰ) (Fᴰ .F-obᴰ c'ᴰ)
+--i = i1 ⊢ Dᴰ .Hom[_][_,_] (D ._⋆_ (D .id) (F .F-hom f))
+--         (Fᴰ .F-obᴰ cᴰ) (Fᴰ .F-obᴰ c'ᴰ)
+    --four : PathP (λ i → Dᴰ.Hom[ six i ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]) (Fᴰ .F-homᴰ fᴰ Dᴰ.⋆ᴰ Dᴰ .idᴰ)
+    --         (Dᴰ .idᴰ Dᴰ.⋆ᴰ Fᴰ .F-homᴰ fᴰ)
+    --four = compPathP' one three
+    seven : (F .F-hom f D.⋆
+               idTrans F .N-ob c')
+              ≡
+              (idTrans F .N-ob c
+               D.⋆ F .F-hom f)
+    seven = idTrans F .N-hom f
+    five : PathP (λ i →
+              ((cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]) (D.⋆IdR _))
+              ∙
+              (cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]) (sym (D.⋆IdL _))))
+              i)
+            ((Fᴰ .F-homᴰ fᴰ) Dᴰ.⋆ᴰ (Dᴰ .idᴰ))
+            ((Dᴰ .idᴰ) Dᴰ.⋆ᴰ (Fᴰ .F-homᴰ fᴰ))
+    five = compPathP one (symP two)
+    five' : transport
+              (λ i →
+                 (cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ])
+                  (D.⋆IdR (F .F-hom f))
+                  ∙
+                  cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ])
+                  (sym (D.⋆IdL (F .F-hom f))))
+                 i)
+              (Fᴰ .F-homᴰ fᴰ Dᴰ.⋆ᴰ Dᴰ .idᴰ)
+              ≡ Dᴰ .idᴰ Dᴰ.⋆ᴰ Fᴰ .F-homᴰ fᴰ
+    five' = fromPathP five
+    four : ((Fᴰ .F-homᴰ fᴰ) Dᴰ.⋆ᴰ (Dᴰ .idᴰ)) Dᴰ.≡[ eight ] ((Dᴰ .idᴰ) Dᴰ.⋆ᴰ (Fᴰ .F-homᴰ fᴰ))
+    four = {!compPathP!}
+    goal' : transport
+        (λ i →
+          (cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ])
+            (D.⋆IdR (F .F-hom f))
+            ∙
+            cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ])
+            (sym (D.⋆IdL (F .F-hom f))))
+          i)
+        (Fᴰ .F-homᴰ fᴰ Dᴰ.⋆ᴰ Dᴰ .idᴰ)
+        ≡
+        transport
+        (λ i →
+          cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]) eight i)
+        (Fᴰ .F-homᴰ fᴰ Dᴰ.⋆ᴰ Dᴰ .idᴰ)
+    goal' = (transportComposite (cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ])
+            (D.⋆IdR (F .F-hom f))) (cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ])
+            (sym (D.⋆IdL (F .F-hom f)))) (Fᴰ .F-homᴰ fᴰ Dᴰ.⋆ᴰ (Dᴰ .idᴰ))) ∙ {!cong (λ x → transport x (Fᴰ .F-homᴰ fᴰ Dᴰ.⋆ᴰ Dᴰ .idᴰ)) ?!}
+    goal : PathP (λ i → cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]) eight i)
+      ((Fᴰ .F-homᴰ fᴰ) Dᴰ.⋆ᴰ (Dᴰ .idᴰ))
+      ((Dᴰ .idᴰ) Dᴰ.⋆ᴰ (Fᴰ .F-homᴰ fᴰ))
+    goal = toPathP (sym {!!} ∙ five') --compPathP' one (symP two)
 
   makeNatTransPathᴰ : {F G : Functor C D}{α β : NatTrans F G}{Fᴰ : Functorᴰ F Cᴰ Dᴰ}{Gᴰ : Functorᴰ G Cᴰ Dᴰ}{αᴰ : NatTransᴰ α Fᴰ Gᴰ}{βᴰ : NatTransᴰ β Fᴰ Gᴰ} →
     (α≡β : α ≡ β) →
@@ -87,39 +163,29 @@ module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'}(Cᴰ : Categoryᴰ C
   makeNatTransPathᴰ α≡β aoc i .N-obᴰ {x = c} cᴰ = (aoc i) cᴰ -- this is η-expanded for clarity
   makeNatTransPathᴰ {F = F} {G = G} {α = α} {β = β} {Fᴰ = Fᴰ} {Gᴰ = Gᴰ} {αᴰ = αᴰ} {βᴰ = βᴰ} α≡β aoc i .N-homᴰ {x = c} {y = c'} {f = f} {xᴰ = cᴰ} {yᴰ = c'ᴰ} fᴰ = remᴰ i
     where
-    one : Dᴰ.Hom[ (F .F-hom f) D.⋆ (α .N-ob c') ][ Fᴰ .F-obᴰ cᴰ , Gᴰ .F-obᴰ c'ᴰ ]
-    one = (Fᴰ .F-homᴰ fᴰ) Dᴰ.⋆ᴰ (αᴰ .N-obᴰ c'ᴰ)
-    two : Dᴰ.Hom[ (α .N-ob c) D.⋆ (G .F-hom f) ][ Fᴰ .F-obᴰ cᴰ , Gᴰ .F-obᴰ c'ᴰ ]
-    two = (αᴰ .N-obᴰ cᴰ) Dᴰ.⋆ᴰ (Gᴰ .F-homᴰ fᴰ)
-    foo : PathP (λ j → Dᴰ [ α .N-hom f j ][ Fᴰ .F-obᴰ cᴰ , Gᴰ .F-obᴰ c'ᴰ ])
+    left : PathP (λ j → Dᴰ [ α .N-hom f j ][ Fᴰ .F-obᴰ cᴰ , Gᴰ .F-obᴰ c'ᴰ ])
             ((Fᴰ .F-homᴰ fᴰ) Dᴰ.⋆ᴰ (αᴰ .N-obᴰ c'ᴰ))
             ((αᴰ .N-obᴰ cᴰ) Dᴰ.⋆ᴰ (Gᴰ .F-homᴰ fᴰ))
-    foo = αᴰ .N-homᴰ fᴰ
-    three : Dᴰ.Hom[ (F .F-hom f) D.⋆ (β .N-ob c') ][ Fᴰ .F-obᴰ cᴰ , Gᴰ .F-obᴰ c'ᴰ ]
-    three = (Fᴰ .F-homᴰ fᴰ) Dᴰ.⋆ᴰ (βᴰ .N-obᴰ c'ᴰ)
-    four : Dᴰ.Hom[ (β .N-ob c) D.⋆ (G .F-hom f) ][ Fᴰ .F-obᴰ cᴰ , Gᴰ .F-obᴰ c'ᴰ ]
-    four = (βᴰ .N-obᴰ cᴰ) Dᴰ.⋆ᴰ (Gᴰ .F-homᴰ fᴰ)
-    bar : PathP (λ j → Dᴰ [ β .N-hom f j ][ Fᴰ .F-obᴰ cᴰ , Gᴰ .F-obᴰ c'ᴰ ])
+    left = αᴰ .N-homᴰ fᴰ
+    right : PathP (λ j → Dᴰ [ β .N-hom f j ][ Fᴰ .F-obᴰ cᴰ , Gᴰ .F-obᴰ c'ᴰ ])
             ((Fᴰ .F-homᴰ fᴰ) Dᴰ.⋆ᴰ (βᴰ .N-obᴰ c'ᴰ))
             ((βᴰ .N-obᴰ cᴰ) Dᴰ.⋆ᴰ (Gᴰ .F-homᴰ fᴰ))
-    bar = βᴰ .N-homᴰ fᴰ
-    five : PathP (λ k →
-                     Dᴰ.Hom[ (F .F-hom f) D.⋆ (α≡β k .N-ob c') ][ Fᴰ .F-obᴰ cᴰ , Gᴰ .F-obᴰ c'ᴰ ])
-            ((Fᴰ .F-homᴰ fᴰ) Dᴰ.⋆ᴰ (αᴰ .N-obᴰ c'ᴰ))
-            ((Fᴰ .F-homᴰ fᴰ) Dᴰ.⋆ᴰ (βᴰ .N-obᴰ c'ᴰ))
-    five = congP (λ _ x → (Fᴰ .F-homᴰ fᴰ) Dᴰ.⋆ᴰ (x c'ᴰ)) aoc
-    six : PathP (λ k →
-                    Dᴰ.Hom[ (α≡β k .N-ob c) D.⋆ (G .F-hom f) ][ Fᴰ .F-obᴰ cᴰ , Gᴰ .F-obᴰ c'ᴰ ])
-            ((αᴰ .N-obᴰ cᴰ) Dᴰ.⋆ᴰ (Gᴰ .F-homᴰ fᴰ))
-            ((βᴰ .N-obᴰ cᴰ) Dᴰ.⋆ᴰ (Gᴰ .F-homᴰ fᴰ))
-    six = congP (λ _ x → (x cᴰ) Dᴰ.⋆ᴰ (Gᴰ .F-homᴰ fᴰ)) aoc
+    right = βᴰ .N-homᴰ fᴰ
+    top : PathP _
+          ((Fᴰ .F-homᴰ fᴰ) Dᴰ.⋆ᴰ (αᴰ .N-obᴰ c'ᴰ))
+          ((Fᴰ .F-homᴰ fᴰ) Dᴰ.⋆ᴰ (βᴰ .N-obᴰ c'ᴰ))
+    top = congP (λ _ x → (Fᴰ .F-homᴰ fᴰ) Dᴰ.⋆ᴰ (x c'ᴰ)) aoc
+    bottom : PathP _
+             ((αᴰ .N-obᴰ cᴰ) Dᴰ.⋆ᴰ (Gᴰ .F-homᴰ fᴰ))
+             ((βᴰ .N-obᴰ cᴰ) Dᴰ.⋆ᴰ (Gᴰ .F-homᴰ fᴰ))
+    bottom = congP (λ _ x → (x cᴰ) Dᴰ.⋆ᴰ (Gᴰ .F-homᴰ fᴰ)) aoc
     remᴰ : PathP (λ k →
-                     PathP (λ j → Dᴰ.Hom[ ((α≡β k) .N-hom f j) ][ Fᴰ .F-obᴰ cᴰ , Gᴰ .F-obᴰ c'ᴰ ])
-                     ((Fᴰ .F-homᴰ fᴰ) Dᴰ.⋆ᴰ ((aoc k) c'ᴰ))
-                     (((aoc k) cᴰ) Dᴰ.⋆ᴰ (Gᴰ .F-homᴰ fᴰ)))
-                  (αᴰ .N-homᴰ fᴰ)
-                  (βᴰ .N-homᴰ fᴰ)
-    remᴰ = isSet→SquareP (λ _ _ → Dᴰ.isSetHomᴰ) (αᴰ .N-homᴰ fᴰ) (βᴰ .N-homᴰ fᴰ) five six
+            PathP (λ j → Dᴰ.Hom[ ((α≡β k) .N-hom f j) ][ Fᴰ .F-obᴰ cᴰ , Gᴰ .F-obᴰ c'ᴰ ])
+              ((Fᴰ .F-homᴰ fᴰ) Dᴰ.⋆ᴰ ((aoc k) c'ᴰ))
+              (((aoc k) cᴰ) Dᴰ.⋆ᴰ (Gᴰ .F-homᴰ fᴰ)))
+           (αᴰ .N-homᴰ fᴰ)
+           (βᴰ .N-homᴰ fᴰ)
+    remᴰ = isSet→SquareP (λ _ _ → Dᴰ.isSetHomᴰ) left right top bottom
     --baz : PathP (λ k → (PathP (λ j → Dᴰ [ (α≡β k) .N-hom f j ][ Fᴰ .F-obᴰ cᴰ , Gᴰ .F-obᴰ c'ᴰ ])
     --        ((Fᴰ .F-homᴰ fᴰ) Dᴰ.⋆ᴰ ((aoc k) c'ᴰ))
     --        (((aoc k) cᴰ) Dᴰ.⋆ᴰ (Gᴰ .F-homᴰ fᴰ)))) foo bar
@@ -133,14 +199,14 @@ module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'}(Cᴰ : Categoryᴰ C
     --  (βᴰ .N-homᴰ fᴰ)
     --remᴰ = (isSet→SquareP (λ _ _ → {!Dᴰ .isSetHomᴰ!}) foo bar {!cong (λ x → Dᴰ ._⋆ᴰ_ (Fᴰ .F-homᴰ fᴰ) (x c'ᴰ)) aoc!} {!cong (λ x → Dᴰ ._⋆ᴰ_ (x cᴰ) (Gᴰ .F-homᴰ fᴰ)) aoc!})
 
-  idLTransᴰ : {F G : Functor C D}{α : NatTrans F G}{Fᴰ : Functorᴰ F Cᴰ Dᴰ}{Gᴰ : Functorᴰ G Cᴰ Dᴰ}(αᴰ : NatTransᴰ α Fᴰ Gᴰ) →
-    --PathP (λ i → NatTransᴰ (FUNCTOR C D .⋆IdL α i) Fᴰ Gᴰ)
-    PathP (λ i → {!!} i)
-    (seqTransᴰ (idTransᴰ F Fᴰ) αᴰ) αᴰ
-  idLTransᴰ = {!!}
-  FUNCTORᴰ : Categoryᴰ (FUNCTOR C D)  _ _
-  FUNCTORᴰ .ob[_] F = Functorᴰ F Cᴰ Dᴰ
-  FUNCTORᴰ .Hom[_][_,_] {x = F} {y = G} α Fᴰ Gᴰ = NatTransᴰ α Fᴰ Gᴰ
-  FUNCTORᴰ .idᴰ {x = F} {p = Fᴰ} = idTransᴰ F Fᴰ
-  FUNCTORᴰ ._⋆ᴰ_ {x = F} {y = G} {z = H} {f = α} {g = β} {xᴰ = Fᴰ} {yᴰ = Gᴰ} {zᴰ = Hᴰ} αᴰ βᴰ = seqTransᴰ αᴰ βᴰ
-  FUNCTORᴰ .⋆IdLᴰ {x = F} {y = G} {f = α} {xᴰ = Fᴰ} {yᴰ = Gᴰ} αᴰ = idLTransᴰ {!!}
+  --idLTransᴰ : {F G : Functor C D}{α : NatTrans F G}{Fᴰ : Functorᴰ F Cᴰ Dᴰ}{Gᴰ : Functorᴰ G Cᴰ Dᴰ}(αᴰ : NatTransᴰ α Fᴰ Gᴰ) →
+  --  --PathP (λ i → NatTransᴰ (FUNCTOR C D .⋆IdL α i) Fᴰ Gᴰ)
+  --  PathP (λ i → {!!} i)
+  --  (seqTransᴰ (idTransᴰ F Fᴰ) αᴰ) αᴰ
+  --idLTransᴰ = {!!}
+  --FUNCTORᴰ : Categoryᴰ (FUNCTOR C D)  _ _
+  --FUNCTORᴰ .ob[_] F = Functorᴰ F Cᴰ Dᴰ
+  --FUNCTORᴰ .Hom[_][_,_] {x = F} {y = G} α Fᴰ Gᴰ = NatTransᴰ α Fᴰ Gᴰ
+  --FUNCTORᴰ .idᴰ {x = F} {p = Fᴰ} = idTransᴰ F Fᴰ
+  --FUNCTORᴰ ._⋆ᴰ_ {x = F} {y = G} {z = H} {f = α} {g = β} {xᴰ = Fᴰ} {yᴰ = Gᴰ} {zᴰ = Hᴰ} αᴰ βᴰ = seqTransᴰ αᴰ βᴰ
+  --FUNCTORᴰ .⋆IdLᴰ {x = F} {y = G} {f = α} {xᴰ = Fᴰ} {yᴰ = Gᴰ} αᴰ = idLTransᴰ {!!}
