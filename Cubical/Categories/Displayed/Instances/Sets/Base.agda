@@ -68,6 +68,7 @@ open import Cubical.Categories.Displayed.NaturalTransformation
 open import Cubical.Categories.NaturalTransformation.Base
 open import Cubical.Categories.Functor
 open import Cubical.Foundations.Transport
+open import Cubical.Foundations.GroupoidLaws
 module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'}(Cᴰ : Categoryᴰ C ℓC ℓC')(Dᴰ : Categoryᴰ D ℓD ℓD') where
   open Categoryᴰ
   open NatTransᴰ
@@ -86,75 +87,79 @@ module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'}(Cᴰ : Categoryᴰ C
     one = Dᴰ .⋆IdRᴰ (Fᴰ .F-homᴰ fᴰ)
     two : ((Dᴰ .idᴰ) Dᴰ.⋆ᴰ (Fᴰ .F-homᴰ fᴰ)) Dᴰ.≡[ D.⋆IdL _ ] (Fᴰ .F-homᴰ fᴰ)
     two = Dᴰ .⋆IdLᴰ (Fᴰ .F-homᴰ fᴰ)
-    six : (F .F-hom f) D.⋆ (D .id) ≡ (D .id) D.⋆ (F .F-hom f)
-    six = (D.⋆IdR _) ∙ (sym (D.⋆IdL _))
-    eight : (F .F-hom f) D.⋆ (D .id) ≡ (D .id) D.⋆ (F .F-hom f)
-    eight = idTrans F .N-hom f
-    same : six ≡ eight
-    same = D.isSetHom _ _ _ _
-    nine : eight ≡ eight
-    nine = {!!}
-    --three : PathP
-    --          (λ i →
-    --             Dᴰ.Hom[ D .⋆IdL (F .F-hom f) (~ i) ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ])
-    --          (Fᴰ .F-homᴰ fᴰ)
-    --          (Dᴰ .idᴰ Dᴰ.⋆ᴰ Fᴰ .F-homᴰ fᴰ)
-    --three = symP two
---i = i0 ⊢ Dᴰ .Hom[_][_,_] (D ._⋆_ (F .F-hom f) (D .id))
---         (Fᴰ .F-obᴰ cᴰ) (Fᴰ .F-obᴰ c'ᴰ)
---i = i1 ⊢ Dᴰ .Hom[_][_,_] (D ._⋆_ (D .id) (F .F-hom f))
---         (Fᴰ .F-obᴰ cᴰ) (Fᴰ .F-obᴰ c'ᴰ)
-    --four : PathP (λ i → Dᴰ.Hom[ six i ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]) (Fᴰ .F-homᴰ fᴰ Dᴰ.⋆ᴰ Dᴰ .idᴰ)
-    --         (Dᴰ .idᴰ Dᴰ.⋆ᴰ Fᴰ .F-homᴰ fᴰ)
-    --four = compPathP' one three
-    seven : (F .F-hom f D.⋆
-               idTrans F .N-ob c')
-              ≡
-              (idTrans F .N-ob c
-               D.⋆ F .F-hom f)
-    seven = idTrans F .N-hom f
-    five : PathP (λ i →
+    -- this is the actual proof we need to be displayed over
+    theirsD : (F .F-hom f) D.⋆ (D .id) ≡ (D .id) D.⋆ (F .F-hom f)
+    theirsD = idTrans F .N-hom f
+    -- which is not the same as this proof, for example
+    mineD : (F .F-hom f) D.⋆ (D .id) ≡ (D .id) D.⋆ (F .F-hom f)
+    mineD = (D.⋆IdR _) ∙ (sym (D.⋆IdL _))
+    -- but it doesn't really matter since homsets are sets, so we can transport
+    sameMineTheirsD : mineD ≡ theirsD
+    sameMineTheirsD = D.isSetHom _ _ _ _
+    mineDᴰ : PathP (λ i →
               ((cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]) (D.⋆IdR _))
               ∙
               (cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]) (sym (D.⋆IdL _))))
               i)
             ((Fᴰ .F-homᴰ fᴰ) Dᴰ.⋆ᴰ (Dᴰ .idᴰ))
             ((Dᴰ .idᴰ) Dᴰ.⋆ᴰ (Fᴰ .F-homᴰ fᴰ))
-    five = compPathP one (symP two)
-    five' : transport
-              (λ i →
-                 (cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ])
-                  (D.⋆IdR (F .F-hom f))
-                  ∙
-                  cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ])
-                  (sym (D.⋆IdL (F .F-hom f))))
-                 i)
-              (Fᴰ .F-homᴰ fᴰ Dᴰ.⋆ᴰ Dᴰ .idᴰ)
-              ≡ Dᴰ .idᴰ Dᴰ.⋆ᴰ Fᴰ .F-homᴰ fᴰ
-    five' = fromPathP five
-    four : ((Fᴰ .F-homᴰ fᴰ) Dᴰ.⋆ᴰ (Dᴰ .idᴰ)) Dᴰ.≡[ eight ] ((Dᴰ .idᴰ) Dᴰ.⋆ᴰ (Fᴰ .F-homᴰ fᴰ))
-    four = {!compPathP!}
-    goal' : transport
-        (λ i →
-          (cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ])
-            (D.⋆IdR (F .F-hom f))
+    mineDᴰ = compPathP one (symP two)
+    ten : Dᴰ.Hom[ (F .F-hom f) D.⋆ (D .id) ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]
+            ≡
+            Dᴰ.Hom[ (D .id) D.⋆ (F .F-hom f) ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]
+    ten = ((cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]) (D.⋆IdR (F .F-hom f)))
             ∙
-            cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ])
-            (sym (D.⋆IdL (F .F-hom f))))
-          i)
-        (Fᴰ .F-homᴰ fᴰ Dᴰ.⋆ᴰ Dᴰ .idᴰ)
-        ≡
-        transport
-        (λ i →
-          cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]) eight i)
-        (Fᴰ .F-homᴰ fᴰ Dᴰ.⋆ᴰ Dᴰ .idᴰ)
-    goal' = (transportComposite (cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ])
-            (D.⋆IdR (F .F-hom f))) (cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ])
-            (sym (D.⋆IdL (F .F-hom f)))) (Fᴰ .F-homᴰ fᴰ Dᴰ.⋆ᴰ (Dᴰ .idᴰ))) ∙ {!cong (λ x → transport x (Fᴰ .F-homᴰ fᴰ Dᴰ.⋆ᴰ Dᴰ .idᴰ)) ?!}
-    goal : PathP (λ i → cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]) eight i)
-      ((Fᴰ .F-homᴰ fᴰ) Dᴰ.⋆ᴰ (Dᴰ .idᴰ))
-      ((Dᴰ .idᴰ) Dᴰ.⋆ᴰ (Fᴰ .F-homᴰ fᴰ))
-    goal = toPathP (sym {!!} ∙ five') --compPathP' one (symP two)
+            (cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]) (sym (D.⋆IdL (F .F-hom f)))))
+    ten' : Dᴰ.Hom[ F .F-hom f D.⋆ D .id ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]
+          ≡
+             Dᴰ.Hom[ D .id D.⋆ F .F-hom f ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]
+    ten' = cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]) theirsD
+    --hard : isProp (Dᴰ.Hom[ F .F-hom f D.⋆ D .id ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]
+    --          ≡
+    --         Dᴰ.Hom[ D .id D.⋆ F .F-hom f ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ])
+    --hard p q = {!isSet→SquareP (λ _ _ → Dᴰ.isSetHomᴰ) p!}
+    need' : ((cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]) (D.⋆IdR (F .F-hom f)))
+              ∙
+              (cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]) (sym (D.⋆IdL (F .F-hom f)))))
+              ≡
+              cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]) (((D.⋆IdR (F .F-hom f))) ∙ (sym (D.⋆IdL (F .F-hom f))))
+    need' = sym (cong-∙ ((λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ])) ((D.⋆IdR (F .F-hom f))) ((sym (D.⋆IdL (F .F-hom f)))))
+    need : ((cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]) (D.⋆IdR (F .F-hom f)))
+              ∙
+              (cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]) (sym (D.⋆IdL (F .F-hom f)))))
+            ≡
+            cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]) theirsD
+    need = need' ∙ congS
+                     (λ y → cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]) y)
+                     (D .isSetHom _ _ _ _)
+    --four : ((Fᴰ .F-homᴰ fᴰ) Dᴰ.⋆ᴰ (Dᴰ .idᴰ)) Dᴰ.≡[ mineD ] ((Dᴰ .idᴰ) Dᴰ.⋆ᴰ (Fᴰ .F-homᴰ fᴰ))
+    --four = {!mineDᴰ!}
+    --fob : {A : Type ℓ}{B : A → Type ℓ}{x y z : A}(f : (a : A) → B a)(p : x ≡ y)(q : y ≡ z) →
+    --  (cong f (p ∙ q)) ≡ ((cong f p) ∙ (cong f q))
+    --flib :
+    --          cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]) (D.⋆IdR (F .F-hom f) ∙ sym (D.⋆IdL (F .F-hom f)))
+    --          ≡
+    --          (cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]) (D.⋆IdR (F .F-hom f))
+    --          ∙
+    --          (cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]) (sym (D.⋆IdL (F .F-hom f)))))
+    --flib = {!!}
+    five : PathP (λ i →
+              ((cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]) (D.⋆IdR (F .F-hom f)))
+              ∙
+              (cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]) (sym (D.⋆IdL (F .F-hom f)))))
+              i)
+            ((Fᴰ .F-homᴰ fᴰ) Dᴰ.⋆ᴰ (Dᴰ .idᴰ))
+            ((Dᴰ .idᴰ) Dᴰ.⋆ᴰ (Fᴰ .F-homᴰ fᴰ))
+          ≡
+          PathP (λ i → cong (λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]) theirsD i)
+            ((Fᴰ .F-homᴰ fᴰ) Dᴰ.⋆ᴰ (Dᴰ .idᴰ))
+            ((Dᴰ .idᴰ) Dᴰ.⋆ᴰ (Fᴰ .F-homᴰ fᴰ))
+    five = cong (λ x → PathP (λ i → x i)
+      ((Fᴰ .F-homᴰ fᴰ) Dᴰ.⋆ᴰ (Dᴰ .idᴰ)) ((Dᴰ .idᴰ) Dᴰ.⋆ᴰ (Fᴰ .F-homᴰ fᴰ)))
+      need
+    -- we want the naturality square to be displayed over their proof
+    goal : ((Fᴰ .F-homᴰ fᴰ) Dᴰ.⋆ᴰ (Dᴰ .idᴰ)) Dᴰ.≡[ theirsD ] ((Dᴰ .idᴰ) Dᴰ.⋆ᴰ (Fᴰ .F-homᴰ fᴰ))
+    goal = transport five mineDᴰ
 
   makeNatTransPathᴰ : {F G : Functor C D}{α β : NatTrans F G}{Fᴰ : Functorᴰ F Cᴰ Dᴰ}{Gᴰ : Functorᴰ G Cᴰ Dᴰ}{αᴰ : NatTransᴰ α Fᴰ Gᴰ}{βᴰ : NatTransᴰ β Fᴰ Gᴰ} →
     (α≡β : α ≡ β) →
