@@ -173,27 +173,30 @@ module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'}(Cᴰ : Categoryᴰ C
            (αᴰ .N-homᴰ fᴰ)
            (βᴰ .N-homᴰ fᴰ)
     remᴰ = isSet→SquareP (λ _ _ → Dᴰ.isSetHomᴰ) left right top bottom
-    --baz : PathP (λ k → (PathP (λ j → Dᴰ [ (α≡β k) .N-hom f j ][ Fᴰ .F-obᴰ cᴰ , Gᴰ .F-obᴰ c'ᴰ ])
-    --        ((Fᴰ .F-homᴰ fᴰ) Dᴰ.⋆ᴰ ((aoc k) c'ᴰ))
-    --        (((aoc k) cᴰ) Dᴰ.⋆ᴰ (Gᴰ .F-homᴰ fᴰ)))) foo bar
-    --baz = {!!}
-    --remᴰ : PathP
-    --  (λ k → (PathP
-    --    (λ j → Dᴰ [ (α≡β k) .N-hom f j ][ Fᴰ .F-obᴰ cᴰ , Gᴰ .F-obᴰ c'ᴰ ])
-    --    ((Fᴰ .F-homᴰ fᴰ) Dᴰ.⋆ᴰ ((aoc k) c'ᴰ))
-    --    (((aoc k) cᴰ) Dᴰ.⋆ᴰ (Gᴰ .F-homᴰ fᴰ))))
-    --  (αᴰ .N-homᴰ fᴰ)
-    --  (βᴰ .N-homᴰ fᴰ)
-    --remᴰ = (isSet→SquareP (λ _ _ → {!Dᴰ .isSetHomᴰ!}) foo bar {!cong (λ x → Dᴰ ._⋆ᴰ_ (Fᴰ .F-homᴰ fᴰ) (x c'ᴰ)) aoc!} {!cong (λ x → Dᴰ ._⋆ᴰ_ (x cᴰ) (Gᴰ .F-homᴰ fᴰ)) aoc!})
 
-  --idLTransᴰ : {F G : Functor C D}{α : NatTrans F G}{Fᴰ : Functorᴰ F Cᴰ Dᴰ}{Gᴰ : Functorᴰ G Cᴰ Dᴰ}(αᴰ : NatTransᴰ α Fᴰ Gᴰ) →
-  --  --PathP (λ i → NatTransᴰ (FUNCTOR C D .⋆IdL α i) Fᴰ Gᴰ)
-  --  PathP (λ i → {!!} i)
-  --  (seqTransᴰ (idTransᴰ F Fᴰ) αᴰ) αᴰ
-  --idLTransᴰ = {!!}
-  --FUNCTORᴰ : Categoryᴰ (FUNCTOR C D)  _ _
-  --FUNCTORᴰ .ob[_] F = Functorᴰ F Cᴰ Dᴰ
-  --FUNCTORᴰ .Hom[_][_,_] {x = F} {y = G} α Fᴰ Gᴰ = NatTransᴰ α Fᴰ Gᴰ
-  --FUNCTORᴰ .idᴰ {x = F} {p = Fᴰ} = idTransᴰ F Fᴰ
-  --FUNCTORᴰ ._⋆ᴰ_ {x = F} {y = G} {z = H} {f = α} {g = β} {xᴰ = Fᴰ} {yᴰ = Gᴰ} {zᴰ = Hᴰ} αᴰ βᴰ = seqTransᴰ αᴰ βᴰ
-  --FUNCTORᴰ .⋆IdLᴰ {x = F} {y = G} {f = α} {xᴰ = Fᴰ} {yᴰ = Gᴰ} αᴰ = idLTransᴰ {!!}
+  idLTransᴰ : {F G : Functor C D}{α : NatTrans F G}{Fᴰ : Functorᴰ F Cᴰ Dᴰ}{Gᴰ : Functorᴰ G Cᴰ Dᴰ}(αᴰ : NatTransᴰ α Fᴰ Gᴰ) →
+    PathP (λ i → NatTransᴰ (FUNCTOR C D .⋆IdL α i) Fᴰ Gᴰ)
+    (seqTransᴰ (idTransᴰ F Fᴰ) αᴰ)
+    αᴰ
+  idLTransᴰ {F} {G} {α} {Fᴰ} {Gᴰ} αᴰ = makeNatTransPathᴰ (FUNCTOR C D .⋆IdL α) goal
+    where
+    goal : PathP (λ i → {c : C .ob} (cᴰ : Cᴰ.ob[ c ]) → Dᴰ.Hom[ D .⋆IdL (α .N-ob c) i ][ Fᴰ .F-obᴰ cᴰ , Gᴰ .F-obᴰ cᴰ ])
+      (λ xᴰ → (Dᴰ .idᴰ) Dᴰ.⋆ᴰ (αᴰ .N-obᴰ xᴰ))
+      (αᴰ .N-obᴰ)
+    goal = implicitFunExt (λ {x} → funExt (λ xᴰ → Dᴰ.⋆IdLᴰ _))
+  idRTransᴰ : {F G : Functor C D}{α : NatTrans F G}{Fᴰ : Functorᴰ F Cᴰ Dᴰ}{Gᴰ : Functorᴰ G Cᴰ Dᴰ}(αᴰ : NatTransᴰ α Fᴰ Gᴰ) →
+    PathP (λ i → NatTransᴰ (FUNCTOR C D .⋆IdR α i) Fᴰ Gᴰ)
+    (seqTransᴰ αᴰ (idTransᴰ G Gᴰ)) αᴰ
+  idRTransᴰ {F} {G} {α} {Fᴰ} {Gᴰ} αᴰ = makeNatTransPathᴰ (FUNCTOR C D .⋆IdR α) goal
+    where
+    goal : PathP (λ i → {c : C .ob} (cᴰ : Cᴰ.ob[ c ]) → Dᴰ.Hom[ D .⋆IdR (α .N-ob c) i ][ Fᴰ .F-obᴰ cᴰ , Gᴰ .F-obᴰ cᴰ ])
+      (λ xᴰ → (αᴰ .N-obᴰ xᴰ) Dᴰ.⋆ᴰ (Dᴰ .idᴰ))
+      (αᴰ .N-obᴰ)
+    goal = implicitFunExt (λ {x} → funExt (λ xᴰ → Dᴰ.⋆IdRᴰ _))
+  FUNCTORᴰ : Categoryᴰ (FUNCTOR C D)  _ _
+  FUNCTORᴰ .ob[_] F = Functorᴰ F Cᴰ Dᴰ
+  FUNCTORᴰ .Hom[_][_,_] {x = F} {y = G} α Fᴰ Gᴰ = NatTransᴰ α Fᴰ Gᴰ
+  FUNCTORᴰ .idᴰ {x = F} {p = Fᴰ} = idTransᴰ F Fᴰ
+  FUNCTORᴰ ._⋆ᴰ_ {x = F} {y = G} {z = H} {f = α} {g = β} {xᴰ = Fᴰ} {yᴰ = Gᴰ} {zᴰ = Hᴰ} αᴰ βᴰ = seqTransᴰ αᴰ βᴰ
+  FUNCTORᴰ .⋆IdLᴰ {x = F} {y = G} {f = α} {xᴰ = Fᴰ} {yᴰ = Gᴰ} αᴰ = idLTransᴰ αᴰ
+  FUNCTORᴰ .⋆IdRᴰ {x = F} {y = G} {f = α} {xᴰ = Fᴰ} {yᴰ = Gᴰ} αᴰ = idRTransᴰ αᴰ
