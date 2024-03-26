@@ -81,6 +81,7 @@ module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'}(Cᴰ : Categoryᴰ C
   open NatTransᴰ
   open NatTrans
   open Functor
+  open import Cubical.Categories.Displayed.Reasoning Dᴰ
   -- record modules
   private
     module Cᴰ = Categoryᴰ Cᴰ
@@ -89,59 +90,7 @@ module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'}(Cᴰ : Categoryᴰ C
   -- TODO: 3/27 Meeting
   idTransᴰ : (F : Functor C D)(Fᴰ : Functorᴰ F Cᴰ Dᴰ) → NatTransᴰ (idTrans F) Fᴰ Fᴰ
   idTransᴰ F Fᴰ .N-obᴰ {x = c} cᴰ = Dᴰ .idᴰ
-  idTransᴰ F Fᴰ .N-homᴰ {x = c} {y = c'} {f = f} {xᴰ = cᴰ} {yᴰ = c'ᴰ} fᴰ = goal
-    where
-    -- abbreviations
-    cong-F = λ x → Dᴰ.Hom[ x ][ Fᴰ .F-obᴰ cᴰ , Fᴰ .F-obᴰ c'ᴰ ]
-    Fᴰfᴰ⋆ᴰidᴰ = (Fᴰ .F-homᴰ fᴰ) Dᴰ.⋆ᴰ (Dᴰ .idᴰ)
-    idᴰ⋆ᴰFᴰfᴰ = ((Dᴰ .idᴰ) Dᴰ.⋆ᴰ (Fᴰ .F-homᴰ fᴰ))
-    IdRᴰ-Fᴰfᴰ : (Fᴰfᴰ⋆ᴰidᴰ Dᴰ.≡[ D.⋆IdR _ ] (Fᴰ .F-homᴰ fᴰ))
-    IdRᴰ-Fᴰfᴰ = Dᴰ .⋆IdRᴰ _
-    IdLᴰ-Fᴰfᴰ : (idᴰ⋆ᴰFᴰfᴰ Dᴰ.≡[ D.⋆IdL _ ] (Fᴰ .F-homᴰ fᴰ))
-    IdLᴰ-Fᴰfᴰ = Dᴰ .⋆IdLᴰ _
-    -- this is the actual proof in the base we want to be displayed over
-    correct-N-hom : (F .F-hom f) D.⋆ (D .id) ≡ (D .id) D.⋆ (F .F-hom f)
-    correct-N-hom = idTrans F .N-hom f
-    -- which is not the same as this proof
-    wrong-N-hom : (F .F-hom f) D.⋆ (D .id) ≡ (D .id) D.⋆ (F .F-hom f)
-    wrong-N-hom = (D.⋆IdR _) ∙ (sym (D.⋆IdL _))
-    -- the "obvious" proof of naturality in Dᴰ, over the wrong square in D though
-    wrong-N-homᴰ : PathP (λ i →
-                     ((cong cong-F (D.⋆IdR _))
-                     ∙
-                     (cong cong-F (sym (D.⋆IdL _))))
-                     i)
-                   Fᴰfᴰ⋆ᴰidᴰ
-                   idᴰ⋆ᴰFᴰfᴰ
-    wrong-N-homᴰ = compPathP IdRᴰ-Fᴰfᴰ (symP IdLᴰ-Fᴰfᴰ)
-    cong-wrong-N-hom : ((cong cong-F (D.⋆IdR _))
-                           ∙
-                           (cong cong-F (sym (D.⋆IdL _))))
-                           ≡ cong cong-F wrong-N-hom
-
-    cong-wrong-N-hom = sym (cong-∙ cong-F (D.⋆IdR _) (sym (D.⋆IdL _)))
-    wrong2correct-N-homᴰ : PathP (λ i →
-                               ((cong cong-F (D.⋆IdR (F .F-hom f)))
-                               ∙
-                               (cong cong-F (sym (D.⋆IdL (F .F-hom f)))))
-                               i)
-                             Fᴰfᴰ⋆ᴰidᴰ
-                             idᴰ⋆ᴰFᴰfᴰ
-                           ≡
-                           PathP (λ i → cong cong-F correct-N-hom i)
-                             Fᴰfᴰ⋆ᴰidᴰ
-                             idᴰ⋆ᴰFᴰfᴰ
-    wrong2correct-N-homᴰ = cong (λ x → PathP (λ i → x i) Fᴰfᴰ⋆ᴰidᴰ idᴰ⋆ᴰFᴰfᴰ) cong-wrong-N-hom ∙ cong-over-base Dᴰ _ _
-    -- just fyi
-    _ : PathP (λ i → cong cong-F correct-N-hom i)
-          Fᴰfᴰ⋆ᴰidᴰ
-          idᴰ⋆ᴰFᴰfᴰ
-        ≡ (Fᴰfᴰ⋆ᴰidᴰ Dᴰ.≡[ correct-N-hom ] idᴰ⋆ᴰFᴰfᴰ)
-    _ = refl
-    -- we want the naturality square to be displayed over `idTrans F`
-    -- TODO: why though?
-    goal : Fᴰfᴰ⋆ᴰidᴰ Dᴰ.≡[ correct-N-hom ] idᴰ⋆ᴰFᴰfᴰ
-    goal = transport wrong2correct-N-homᴰ wrong-N-homᴰ
+  idTransᴰ F Fᴰ .N-homᴰ {x = c} {y = c'} {f = f} {xᴰ = cᴰ} {yᴰ = c'ᴰ} fᴰ = ≡[]-rectify (Dᴰ .⋆IdRᴰ _ [ _ ]∙[ _ ] symP (Dᴰ .⋆IdLᴰ _))
 
   makeNatTransPathᴰ : {F G : Functor C D}{α β : NatTrans F G}{Fᴰ : Functorᴰ F Cᴰ Dᴰ}{Gᴰ : Functorᴰ G Cᴰ Dᴰ}{αᴰ : NatTransᴰ α Fᴰ Gᴰ}{βᴰ : NatTransᴰ β Fᴰ Gᴰ} →
     (α≡β : α ≡ β) →
@@ -200,3 +149,5 @@ module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'}(Cᴰ : Categoryᴰ C
   FUNCTORᴰ ._⋆ᴰ_ {x = F} {y = G} {z = H} {f = α} {g = β} {xᴰ = Fᴰ} {yᴰ = Gᴰ} {zᴰ = Hᴰ} αᴰ βᴰ = seqTransᴰ αᴰ βᴰ
   FUNCTORᴰ .⋆IdLᴰ {x = F} {y = G} {f = α} {xᴰ = Fᴰ} {yᴰ = Gᴰ} αᴰ = idLTransᴰ αᴰ
   FUNCTORᴰ .⋆IdRᴰ {x = F} {y = G} {f = α} {xᴰ = Fᴰ} {yᴰ = Gᴰ} αᴰ = idRTransᴰ αᴰ
+  FUNCTORᴰ .⋆Assocᴰ {x = F} {y = G} {z = H} {w = E} {f = α} {g = β} {h = γ} {xᴰ = Fᴰ} {yᴰ = Gᴰ} {zᴰ = Hᴰ} {wᴰ = Eᴰ} αᴰ βᴰ γᴰ =
+    makeNatTransPathᴰ (FUNCTOR C D .⋆Assoc _ _ _) {!!}
