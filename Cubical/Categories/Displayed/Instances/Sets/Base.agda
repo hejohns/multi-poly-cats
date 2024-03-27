@@ -171,5 +171,6 @@ module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'}(Cᴰ : Categoryᴰ C
   FUNCTORᴰ .⋆IdRᴰ {x = F} {y = G} {f = α} {xᴰ = Fᴰ} {yᴰ = Gᴰ} αᴰ = idRTransᴰ αᴰ
   -- this is slow
   FUNCTORᴰ .⋆Assocᴰ {x = F} {y = G} {z = H} {w = E} {f = α} {g = β} {h = γ} {xᴰ = Fᴰ} {yᴰ = Gᴰ} {zᴰ = Hᴰ} {wᴰ = Eᴰ} αᴰ βᴰ γᴰ =
-    makeNatTransPathᴰ (FUNCTOR C D .⋆Assoc _ _ _) (implicitFunExt (λ {x} → funExt (λ xᴰ →  Dᴰ .⋆Assocᴰ _ _ _)))
+    makeNatTransPathᴰ (FUNCTOR C D .⋆Assoc α β γ)
+    (implicitFunExt (λ {x} → funExt (λ xᴰ →  Dᴰ .⋆Assocᴰ _ _ _)))
   FUNCTORᴰ .isSetHomᴰ {x = F} {y = G} {f = α} {xᴰ = Fᴰ} {yᴰ = Gᴰ} = isSetNatTransᴰ
