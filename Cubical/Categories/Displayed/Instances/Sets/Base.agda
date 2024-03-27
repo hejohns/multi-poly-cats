@@ -86,11 +86,30 @@ module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'}(Cᴰ : Categoryᴰ C
   private
     module Cᴰ = Categoryᴰ Cᴰ
     module Dᴰ = Categoryᴰ Dᴰ
+    module C = Category C
     module D = Category D
   -- TODO: 3/27 Meeting
   idTransᴰ : (F : Functor C D)(Fᴰ : Functorᴰ F Cᴰ Dᴰ) → NatTransᴰ (idTrans F) Fᴰ Fᴰ
   idTransᴰ F Fᴰ .N-obᴰ {x = c} cᴰ = Dᴰ .idᴰ
   idTransᴰ F Fᴰ .N-homᴰ {x = c} {y = c'} {f = f} {xᴰ = cᴰ} {yᴰ = c'ᴰ} fᴰ = ≡[]-rectify (Dᴰ .⋆IdRᴰ _ [ _ ]∙[ _ ] symP (Dᴰ .⋆IdLᴰ _))
+
+  module _ {F G : Functor C D}{α : NatTrans F G}{Fᴰ : Functorᴰ F Cᴰ Dᴰ}{Gᴰ : Functorᴰ G Cᴰ Dᴰ} where
+    open import Cubical.Foundations.Isomorphism
+    open Iso
+    NatTransᴰΣ : Type _
+    NatTransᴰΣ = Σ[ ob ∈ ({c : C .ob} (cᴰ : Cᴰ.ob[ c ]) → Dᴰ.Hom[ α .N-ob c ][ (Fᴰ .F-obᴰ cᴰ) , (Gᴰ .F-obᴰ cᴰ) ]) ]
+                    ({c : C.ob} {c' : C.ob} {f : C [ c , c' ]} {cᴰ : Cᴰ.ob[ c ] } {c'ᴰ : Cᴰ.ob[ c' ] } (fᴰ : Cᴰ.Hom[ f ][ cᴰ , c'ᴰ ]) → PathP (λ i → Dᴰ.Hom[ α .N-hom f i ][ Fᴰ .F-obᴰ cᴰ , Gᴰ .F-obᴰ c'ᴰ ]) (Fᴰ .F-homᴰ fᴰ Dᴰ.⋆ᴰ ob c'ᴰ) (ob cᴰ Dᴰ.⋆ᴰ Gᴰ .F-homᴰ fᴰ))
+    NatTransIsoᴰΣ : Iso (NatTransᴰ α Fᴰ Gᴰ) NatTransᴰΣ
+    NatTransIsoᴰΣ .fun αᴰ = αᴰ .N-obᴰ , αᴰ .N-homᴰ
+    NatTransIsoᴰΣ .inv (ob , hom) .N-obᴰ = ob
+    NatTransIsoᴰΣ .inv (ob , hom) .N-homᴰ = hom
+    NatTransIsoᴰΣ .rightInv _ = refl
+    NatTransIsoᴰΣ .leftInv _ = refl
+    isSetNatTransᴰ : isSet (NatTransᴰ α Fᴰ Gᴰ)
+    isSetNatTransᴰ = isSetRetract (NatTransIsoᴰΣ .fun) (NatTransIsoᴰΣ .inv) (NatTransIsoᴰΣ .leftInv)
+      --(isSetΣSndProp (isSetImplicitΠ λ x → isSetΠ (λ xᴰ → Dᴰ .isSetHomᴰ)) (λ b₁ → isPropImplicitΠ4 λ a₁ a₂ a₃ a₄ → isPropImplicitΠ λ x₂ → isPropΠ λ x₃ → {!Dᴰ .isSetHomᴰ!}))
+      (isSetΣSndProp (isSetImplicitΠ (λ c → isSetΠ (λ cᴰ → Dᴰ .isSetHomᴰ)))
+        λ α-components → isPropImplicitΠ3 λ c c' f → isPropImplicitΠ2 (λ cᴰ c'ᴰ → isPropΠ λ fᴰ → λ p q → isSet→SquareP (λ _ _ → Dᴰ .isSetHomᴰ) _ _ _ _))
 
   makeNatTransPathᴰ : {F G : Functor C D}{α β : NatTrans F G}{Fᴰ : Functorᴰ F Cᴰ Dᴰ}{Gᴰ : Functorᴰ G Cᴰ Dᴰ}{αᴰ : NatTransᴰ α Fᴰ Gᴰ}{βᴰ : NatTransᴰ β Fᴰ Gᴰ} →
     (α≡β : α ≡ β) →
@@ -142,6 +161,7 @@ module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'}(Cᴰ : Categoryᴰ C
       (λ xᴰ → (αᴰ .N-obᴰ xᴰ) Dᴰ.⋆ᴰ (Dᴰ .idᴰ))
       (αᴰ .N-obᴰ)
     goal = implicitFunExt (λ {x} → funExt (λ xᴰ → Dᴰ.⋆IdRᴰ _))
+  -- move to Displayed/NaturalTransformation
   FUNCTORᴰ : Categoryᴰ (FUNCTOR C D)  _ _
   FUNCTORᴰ .ob[_] F = Functorᴰ F Cᴰ Dᴰ
   FUNCTORᴰ .Hom[_][_,_] {x = F} {y = G} α Fᴰ Gᴰ = NatTransᴰ α Fᴰ Gᴰ
@@ -149,5 +169,7 @@ module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'}(Cᴰ : Categoryᴰ C
   FUNCTORᴰ ._⋆ᴰ_ {x = F} {y = G} {z = H} {f = α} {g = β} {xᴰ = Fᴰ} {yᴰ = Gᴰ} {zᴰ = Hᴰ} αᴰ βᴰ = seqTransᴰ αᴰ βᴰ
   FUNCTORᴰ .⋆IdLᴰ {x = F} {y = G} {f = α} {xᴰ = Fᴰ} {yᴰ = Gᴰ} αᴰ = idLTransᴰ αᴰ
   FUNCTORᴰ .⋆IdRᴰ {x = F} {y = G} {f = α} {xᴰ = Fᴰ} {yᴰ = Gᴰ} αᴰ = idRTransᴰ αᴰ
+  -- this is slow
   FUNCTORᴰ .⋆Assocᴰ {x = F} {y = G} {z = H} {w = E} {f = α} {g = β} {h = γ} {xᴰ = Fᴰ} {yᴰ = Gᴰ} {zᴰ = Hᴰ} {wᴰ = Eᴰ} αᴰ βᴰ γᴰ =
-    makeNatTransPathᴰ (FUNCTOR C D .⋆Assoc _ _ _) {!!}
+    makeNatTransPathᴰ (FUNCTOR C D .⋆Assoc _ _ _) (implicitFunExt (λ {x} → funExt (λ xᴰ →  Dᴰ .⋆Assocᴰ _ _ _)))
+  FUNCTORᴰ .isSetHomᴰ {x = F} {y = G} {f = α} {xᴰ = Fᴰ} {yᴰ = Gᴰ} = isSetNatTransᴰ
