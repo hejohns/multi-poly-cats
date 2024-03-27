@@ -67,15 +67,7 @@ open import Cubical.Categories.Instances.Functors
 open import Cubical.Categories.Displayed.NaturalTransformation
 open import Cubical.Categories.NaturalTransformation.Base
 open import Cubical.Categories.Functor
-open import Cubical.Foundations.Transport
 open import Cubical.Foundations.GroupoidLaws
-module _ {C : Category ℓC ℓC'}{c c' : C .ob}{f g : C [ c , c' ]}{p : f ≡ g}{q : f ≡ g}(Cᴰ : Categoryᴰ C ℓC ℓC') where
-  private
-    module C = Category C
-    module Cᴰ = Categoryᴰ Cᴰ
-  cong-over-base : {cᴰ : Cᴰ.ob[ c ]}{c'ᴰ : Cᴰ.ob[ c' ]}(fᴰ : Cᴰ.Hom[ f ][ cᴰ , c'ᴰ ])(gᴰ : Cᴰ.Hom[ g ][ cᴰ , c'ᴰ ]) → (fᴰ Cᴰ.≡[ p ] gᴰ) ≡ (fᴰ Cᴰ.≡[ q ] gᴰ)
-  cong-over-base fᴰ gᴰ = cong (λ x → fᴰ Cᴰ.≡[ x ] gᴰ) (C.isSetHom _ _ _ _)
-
 module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'}(Cᴰ : Categoryᴰ C ℓC ℓC')(Dᴰ : Categoryᴰ D ℓD ℓD') where
   open Categoryᴰ
   open NatTransᴰ
