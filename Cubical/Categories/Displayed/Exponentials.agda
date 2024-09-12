@@ -10,6 +10,7 @@ open import Cubical.Foundations.Structure
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Transport
 open import Cubical.Foundations.GroupoidLaws
+open import Cubical.Foundations.Function
 
 open import Cubical.Categories.Category.Base
 open import Cubical.Categories.Functor
@@ -184,14 +185,23 @@ module _ (Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ') where
         η : (gᴰ : Cᴰ.Hom[ g ][ xᴰ , hp .vertexᴰ ]) →
           ((gᴰ Cᴰ.⋆ᴰ π₁) p, reind (sym (C .⋆Assoc _ _ _)) (gᴰ Cᴰ.⋆ᴰ π₂)) ≡ gᴰ
         η gᴰ = retIsEq (hp .universalᴰ) gᴰ
-        module _ where
-          open Reasoning₂ Cᴰ
-          -- TODO: commenting out so this builds and we can push for reference
-          --reind₂-pair :
-          --  {xᴰ' : Cᴰ.ob[ x ]}
-          --  (q : xᴰ ≡ xᴰ') →
-          --  (gᴰ p, g⋆fᴰ) ≡₂[ refl , q ] (hᴰ p, h⋆fᴰ')
-          --reind₂-pair = ?
+      module _ where
+        private module C = Category C
+        open Reasoning₂ Cᴰ
+        reind₂-pair :
+          {x : C .ob}
+          {g h : C [ x , c' ]}
+          {xᴰ xᴰ' : Cᴰ.ob[ x ]}
+          {gᴰ : Cᴰ.Hom[ g ⋆⟨ C ⟩ C .id ][ xᴰ , c'ᴰ ]}
+          {hᴰ : Cᴰ.Hom[ h ⋆⟨ C ⟩ C .id ][ xᴰ' , c'ᴰ ]}
+          {g⋆fᴰ : Cᴰ.Hom[ g ⋆⟨ C ⟩ C .id ⋆⟨ C ⟩ f ][ xᴰ , cᴰ ]}
+          {h⋆fᴰ : Cᴰ.Hom[ h ⋆⟨ C ⟩ C .id ⋆⟨ C ⟩ f ][ xᴰ' , cᴰ ]}
+          (p : g ≡ h) →
+          (q : xᴰ ≡ xᴰ') →
+          (r : gᴰ ≡₂[ congS (C._⋆ C .id) p , q ] hᴰ) →
+          (s : g⋆fᴰ ≡₂[ congS ((C._⋆ f) ∘S (C._⋆ C .id)) p , q ] h⋆fᴰ) →
+          (gᴰ p, g⋆fᴰ) ≡₂[ p , q ] (hᴰ p, h⋆fᴰ)
+        reind₂-pair p q r s = congP₂ (λ _ a b → a p, b) r s
   AllHetPairs : Type _
   AllHetPairs = ∀{c' c}
     (f : C [ c' , c ])(c'ᴰ : Cᴰ.ob[ c' ])(cᴰ : Cᴰ.ob[ c ]) →
@@ -260,6 +270,8 @@ module _ (Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ')
         module bar = heterogeneous-pair.HetPairNotation Cᴰ (C .id ⋆⟨ C ⟩ f) xᴰ cᴰ (ahp _ _ _)
         vert≡ : bar.vert ≡ foo.vert
         vert≡ = congS (λ x → ahp x _ _ .vertexᴰ) (C .⋆IdL _)
+        π₁≡ : bar.π₁ ≡₂[ refl , vert≡ ] foo.π₁
+        π₁≡ = congP (λ _ a → ahp a _ _ .elementᴰ .fst) (C .⋆IdL _)
         hm : C .id ⋆⟨ C ⟩ C .id ≡ C .id ⋆⟨ C ⟩ C .id
         hm = C .⋆IdL (C .id) ∙ sym (C .⋆IdR (C .id))
         one : reind hm (bar.π₁ Cᴰ.⋆ᴰ Cᴰ.idᴰ) ≡ Cᴰ.idᴰ Cᴰ.⋆ᴰ bar.π₁
@@ -311,7 +323,9 @@ module _ (Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ')
           ((Cᴰ.idᴰ Cᴰ.⋆ᴰ foo.π₁)
           foo.p,
           reind (sym (C .⋆Assoc _ _ _)) (Cᴰ.idᴰ Cᴰ.⋆ᴰ foo.π₂))
-        lemma = {!!}
+        lemma = foo.reind₂-pair refl vert≡
+          (≡₂[]-rectify (one ◁₂ congP (λ _ → Cᴰ.idᴰ Cᴰ.⋆ᴰ_) π₁≡))
+          (≡₂[]-rectify (simpl [ _ ]∙[ _ ] two ◁₂ {!!}))
         test-η :
           ((Cᴰ.idᴰ Cᴰ.⋆ᴰ foo.π₁)
           foo.p,
@@ -326,18 +340,10 @@ module _ (Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ')
           Cᴰ.⋆ᴰ fᴰ)
           ≡₂[ _ , congS (λ x → ahp x xᴰ cᴰ .vertexᴰ) (C .⋆IdL f) ]
           fᴰ
-        --goal = (congP (λ _ → Cᴰ._⋆ᴰ fᴰ) {!!} [ _ ]∙[ _ ]
-        --  {! symP (reind₂-contract refl (sym vert≡) {fᴰ = Cᴰ.idᴰ} {hᴰ = fᴰ}) !} [ _ ]∙[ _ ]
-        --  reind₂-contract' (Cᴰ.⋆IdLᴰ _))
-        --  ◁₂ reind₂-filler-sym (sym (C .⋆IdL _)) (sym vert≡) fᴰ
         goal = ((congP (λ _ a → Cᴰ._⋆ᴰ_ {f = C .id} a fᴰ) {!!}) [ _ ]∙[ _ ]
             symP (reind₂-contract refl (sym vert≡) {fᴰ = Cᴰ.idᴰ} {hᴰ = fᴰ}) [ _ ]∙[ _ ]
             reind₂-contract' (Cᴰ.⋆IdLᴰ _))
           ◁₂ reind₂-filler-sym (sym (C .⋆IdL _)) (sym vert≡) fᴰ
-        --goal = (cong₂ (λ x y → (x foo.p, y) Cᴰ.⋆ᴰ fᴰ) one simpl [ _ ]∙[ _ ]
-        --  {!!} [ _ ]∙[ _ ] --≡[]-rectify (congP (λ _ x → (_ foo.p, x) Cᴰ.⋆ᴰ fᴰ) (≡[]-rectify {!two!})) [ _ ]∙[ _ ]
-        --  {!congP (λ _ a → a Cᴰ.⋆ᴰ fᴰ) (foo.η Cᴰ.idᴰ)!} [ _  ]∙[ _  ] Cᴰ.⋆IdLᴰ {!fᴰ!})
-        --  ◁₂ {!!}
     VerticalExponentialsAtSpec .F-seqᴰ = {!!}
     VerticalExponentialsAt : Type _
     VerticalExponentialsAt = UniversalElementᴰ Cᴰ VerticalExponentialsAtSpec (idue Cᴰ c) --(idue c)
