@@ -255,14 +255,14 @@ module _ (Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ')
     VerticalExponentialsAtSpec .F-obᴰ xᴰ f = Cᴰ.Hom[ f ][ foo.vert , cᴰ' ] , Cᴰ.isSetHomᴰ
       where
       module foo = heterogeneous-pair.HetPairNotation Cᴰ f xᴰ cᴰ (ahp _ _ _)
-    VerticalExponentialsAtSpec .F-homᴰ {f = g} {xᴰ = xᴰ} {yᴰ = yᴰ} gᴰ f fᴰ =
-      (reind (C .⋆IdL _ ∙ sym (C .⋆IdR _)) (bar.π₁ Cᴰ.⋆ᴰ gᴰ)
-      foo.p,
-      reind (sym (C .⋆Assoc _ _ _) ∙ congS (C._⋆ f) (C .⋆IdL _ ∙ sym (C .⋆IdR _))) bar.π₂)
-      Cᴰ.⋆ᴰ fᴰ
-      where
-      module foo = heterogeneous-pair.HetPairNotation Cᴰ f xᴰ cᴰ (ahp _ _ _)
-      module bar = heterogeneous-pair.HetPairNotation Cᴰ (g ⋆⟨ C ⟩ f) yᴰ cᴰ (ahp _ _ _)
+    VerticalExponentialsAtSpec .F-homᴰ {f = g} {xᴰ = xᴰ} {yᴰ = yᴰ} gᴰ f fᴰ = ?
+      --(reind (C .⋆IdL _ ∙ sym (C .⋆IdR _)) (bar.π₁ Cᴰ.⋆ᴰ gᴰ)
+      --foo.p,
+      --reind (sym (C .⋆Assoc _ _ _) ∙ congS (C._⋆ f) (C .⋆IdL _ ∙ sym (C .⋆IdR _))) bar.π₂)
+      --Cᴰ.⋆ᴰ fᴰ
+      --where
+      --module foo = heterogeneous-pair.HetPairNotation Cᴰ f xᴰ cᴰ (ahp _ _ _)
+      --module bar = heterogeneous-pair.HetPairNotation Cᴰ (g ⋆⟨ C ⟩ f) yᴰ cᴰ (ahp _ _ _)
     VerticalExponentialsAtSpec .F-idᴰ {xᴰ = xᴰ} = funExt (λ f → funExt (λ fᴰ → ≡₂[]-rectify (goal f fᴰ)))
       where
       module _ f fᴰ where
@@ -272,6 +272,12 @@ module _ (Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ')
         vert≡ = congS (λ x → ahp x _ _ .vertexᴰ) (C .⋆IdL _)
         π₁≡ : bar.π₁ ≡₂[ refl , vert≡ ] foo.π₁
         π₁≡ = congP (λ _ a → ahp a _ _ .elementᴰ .fst) (C .⋆IdL _)
+        π₂≡ : bar.π₂ ≡₂[ _ , vert≡ ] foo.π₂
+        π₂≡ = congP (λ _ a → ahp a _ _ .elementᴰ .snd) (C .⋆IdL _)
+
+        aaa : bar.π₂ ≡₂[ sym (C .⋆Assoc _ _ _) , vert≡ ] reind (sym (C .⋆Assoc (C .id) (C .id) f)) ((Cᴰ .Categoryᴰ.idᴰ) Cᴰ.⋆ᴰ (foo.π₂))
+        aaa = {!congP₂ !}
+       
         hm : C .id ⋆⟨ C ⟩ C .id ≡ C .id ⋆⟨ C ⟩ C .id
         hm = C .⋆IdL (C .id) ∙ sym (C .⋆IdR (C .id))
         one : reind hm (bar.π₁ Cᴰ.⋆ᴰ Cᴰ.idᴰ) ≡ Cᴰ.idᴰ Cᴰ.⋆ᴰ bar.π₁
@@ -319,13 +325,13 @@ module _ (Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ')
           (reind hm (bar.π₁ Cᴰ.⋆ᴰ Cᴰ.idᴰ)
           foo.p,
           reind (sym (C .⋆Assoc _ _ _) ∙ congS (C._⋆ f) hm) bar.π₂)
-          ≡₂[ {!!} , vert≡ ]
+          ≡₂[ refl , vert≡ ]
           ((Cᴰ.idᴰ Cᴰ.⋆ᴰ foo.π₁)
           foo.p,
           reind (sym (C .⋆Assoc _ _ _)) (Cᴰ.idᴰ Cᴰ.⋆ᴰ foo.π₂))
         lemma = foo.reind₂-pair refl vert≡
           (≡₂[]-rectify (one ◁₂ congP (λ _ → Cᴰ.idᴰ Cᴰ.⋆ᴰ_) π₁≡))
-          (≡₂[]-rectify (simpl [ _ ]∙[ _ ] two ◁₂ {!!}))
+          (≡₂[]-rectify (simpl [ _ ]∙[ _ ] two [ _ ]∙[ {!!} ] {!!} ◁₂ {!!} ))--congP₂ (λ _ a b → reind a (Cᴰ.idᴰ Cᴰ.⋆ᴰ b)) {!!} π₂≡))
         test-η :
           ((Cᴰ.idᴰ Cᴰ.⋆ᴰ foo.π₁)
           foo.p,
@@ -340,7 +346,7 @@ module _ (Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ')
           Cᴰ.⋆ᴰ fᴰ)
           ≡₂[ _ , congS (λ x → ahp x xᴰ cᴰ .vertexᴰ) (C .⋆IdL f) ]
           fᴰ
-        goal = ((congP (λ _ a → Cᴰ._⋆ᴰ_ {f = C .id} a fᴰ) {!!}) [ _ ]∙[ _ ]
+        goal = ((congP (λ _ a → Cᴰ._⋆ᴰ_ {f = C .id} a fᴰ) ({!reind₂-filler!})) [ _ ]∙[ _ ]
             symP (reind₂-contract refl (sym vert≡) {fᴰ = Cᴰ.idᴰ} {hᴰ = fᴰ}) [ _ ]∙[ _ ]
             reind₂-contract' (Cᴰ.⋆IdLᴰ _))
           ◁₂ reind₂-filler-sym (sym (C .⋆IdL _)) (sym vert≡) fᴰ
